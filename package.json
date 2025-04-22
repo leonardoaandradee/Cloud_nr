@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "json-server": "^0.17.4"
+  },
+  "name": "cloud-nr",
+  "version": "1.0.0",
+  "description": "Projeto de aplicação ultilizando Railway",
+  "main": "server.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
