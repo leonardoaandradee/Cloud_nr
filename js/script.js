@@ -19,7 +19,7 @@ $(document).ready(() => {
                         <td>${parseFloat(pizza.price).toFixed(2)}</td> 
                         <td>
                             <a class="waves-effect waves-light btn-small">
-                                <i class="material-icons" onclick="editPizza(${pizza.id})">edit</i>
+                                   <i class="material-icons" onclick="editPizza(${pizza.id})">edit</i>
                             </a>
                             <a class="waves-effect waves-light btn-small">
                                 <i class="material-icons" onclick="deletePizza(${pizza.id})">delete</i>

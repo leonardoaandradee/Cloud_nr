@@ -11,14 +11,19 @@ app.use(express.json());
 // Servir arquivos estáticos da pasta atual
 app.use(express.static(path.join(__dirname)));
 
-// Rota para servir o arquivo pizzas.html
+// Rota para servir o arquivo main.html
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'main.html'));
+});
+
+// Rota para servir o arquivo pizzas.html
+app.get('/pizzas.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'pizzas.html'));
 });
 
 // Iniciar o servidor
 app.listen(port, () => {
-  console.log('Servidor ativo');
+ console.log('Servidor ativo');
 });
 
 // Funções para leitura e escrita no db.json
