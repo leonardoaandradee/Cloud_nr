@@ -4334,6 +4334,8 @@ nav .brand-logo {
   display: inline-block;
   font-size: 2.1rem;
   padding: 0;
+  color: black;
+  width: 100%;
 }
 
 nav .brand-logo.center {
