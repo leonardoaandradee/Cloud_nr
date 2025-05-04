@@ -3,6 +3,11 @@
 A aplicação simula o funcionamento básico de uma pizzaria, permitindo o gerenciamento de clientes, produtos (pizzas) e pedidos por meio de operações CRUD.
 O sistema é dividido em frontend e backend, que se comunicam através de uma API utilizando Express.
 
+Para "rodar" o projeto via:
+BACKEND: /back/npm run dev
+FRONTEND: 
+
+
 ## 🚀 Visão Geral:
 
 O objetivo principal é criar uma estrutura funcional para uma pizzaria digital, onde:
@@ -34,20 +39,21 @@ A aplicação é dividida entre cliente e servidor:
 Aqui você encontra detalhes da estrutura de pastas do projeto;
 
 /back
-|-- bin/        -> Gerencia a porta de comunicação (4000) e cria servidor
-|-- database/   -> contém o banco de dados
-|-- public/
-|-- routes/     -> Contém as rotas (index.js | clients.js | orders.js | pizzas.js)
-
+├── bin/          # Gerencia a porta de comunicação (4000) e cria o servidor
+├── database/     # Contém o banco de dados SQLite
+├── public/       # (Opcional) Arquivos estáticos se necessário
+├── routes/       # Rotas da API (index.js, clients.js, orders.js, pizzas.js)
 
 /front
-|-- bin/        -> gerencia a porta de comunicação (3000) e cria servidor
-|-- public/     -> Contém o arquivo principal (index.html)
-    |-- css/    -> Arquivos CSS
-    |-- js/     -> Arquivos JS
-|-- src/
-|-- components/ -> Contém compontes das páginas (Imagens e demais assets)
-|-- pages/
+├── bin/              # Gerencia a porta de comunicação (3000) e cria o servidor do frontend
+├── public/           # Contém o arquivo principal index.html e recursos públicos
+│   ├── css/          # Arquivos de estilo (CSS)
+│   ├── js/           # Scripts JS do frontend
+│   ├── components/   # Componentes de interface (imagens, assets, partes de páginas)
+├── src/              # (Opcional) Scripts JS organizados por funcionalidade
+├── pages/            # Páginas HTML adicionais (caso exista mais que o index.html)
+
+
 
 # Arquivos estáticos:
 index.html
