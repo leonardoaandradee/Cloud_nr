@@ -31,23 +31,29 @@ A aplicação é dividida entre cliente e servidor:
 - O **backend (API Express)** processa essas requisições, interage com a base de dados (ou estrutura simulada) e retorna as respostas adequadas.
 
 ## 📁 Estrutura de Pastas:
+Aqui você encontra detalhes da estrutura de pastas do projeto;
 
-/backend
-|-- server.js
-|-- routes/
-|-- controllers/
-|-- models/
-
-/frontend
+/back
+|-- bin/        -> Gerencia a porta de comunicação (4000) e cria servidor
+|-- database/   -> contém o banco de dados
 |-- public/
+|-- routes/     -> Contém as rotas (index.js | clients.js | orders.js | pizzas.js)
+
+
+/front
+|-- bin/        -> gerencia a porta de comunicação (3000) e cria servidor
+|-- public/     -> Contém o arquivo principal (index.html)
+    |-- css/    -> Arquivos CSS
+    |-- js/     -> Arquivos JS
 |-- src/
-|-- components/
+|-- components/ -> Contém compontes das páginas (Imagens e demais assets)
 |-- pages/
 
 # Arquivos estáticos:
+index.html
 pizzas.html
 
-## Alunos participantes:
+## Participantes do projeto:
 Eduardo Cadiz eduardo.cadiz@faculdadenovaroma.com.br
-Leonardo Andrade 
+Leonardo Andrade leonardo.lima@novaroma.edu.br
 Kaio kaioguilherme649@gmail.com

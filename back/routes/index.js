@@ -1,9 +1,14 @@
 var express = require('express');
 var router = express.Router();
+var path = require('path');
 
 /* GET home page. */
+// Here you load Index.html file
+// The file INDEX.HTML is in Frontend folder
+//
 router.get('/', function(req, res, next) {
-  res.send({message: 'Welcome to my API! It´s Working. This message is in /back/router/index.js file' });
+    console.log('You are in index.js file');
+    res.sendFile(path.join(__dirname, '../../front/public/index.html')); 
 });
 
 module.exports = router;

@@ -1,0 +1,63 @@
+{
+  "pizzas": [
+    {
+      "flavor": "3 queijos",
+      "description": "mussarela, queijo coalho e queijo ralado",
+      "category": "Tradicional",
+      "size": "Média",
+      "price": "12.50",
+      "id": 4
+    },
+    {
+      "flavor": "mussarela premium",
+      "description": "mussarela de bufala, molho de tomate manjericão",
+      "category": "Especial",
+      "size": "Média",
+      "price": "25",
+      "id": 7
+    },
+    {
+      "flavor": "calabresa baiana",
+      "description": "mussarela, calabresa fatiada, cebola e pimenta do reino",
+      "category": "Tradicional",
+      "size": "Grande",
+      "price": "35.00",
+      "monolitId": "pizza",
+      "id": 8
+    }
+  ],
+  "clients": [
+    {
+      "id": 1,
+      "name": "João Pereira",
+      "email": "joao@email.com",
+      "phone": "11912345678"
+    },
+    {
+      "id": 2,
+      "name": "Maria Oliveira",
+      "email": "maria@email.com",
+      "phone": "11987654321"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "clientId": 1,
+      "pizzas": [
+        1
+      ],
+      "total": 40,
+      "status": "Entregue"
+    },
+    {
+      "id": 2,
+      "clientId": 2,
+      "pizzas": [
+        2
+      ],
+      "total": 45,
+      "status": "Em preparo"
+    }
+  ]
+}
