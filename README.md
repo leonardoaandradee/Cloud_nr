@@ -4,7 +4,7 @@ A aplicação simula o funcionamento básico de uma pizzaria, permitindo o geren
 O sistema é dividido em frontend e backend, que se comunicam através de uma API utilizando Express.
 
 Para "rodar" o projeto via:
-BACKEND: /back/npm run dev
+BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
 FRONTEND: 
 
 
@@ -23,6 +23,8 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - **NPM** – Gerenciador de pacotes (versão 0.17.4 utilizada no projeto).
 - Estrutura CRUD para: clientes, produtos e pedidos.
 - O servidor BACKEND usado estará rodando na porta 4000 e deverá estar em visibilidade pública.
+- SGBD sqlite3 será usado para gerenciar os arquivos de banco de dados separados: clients, orders e pizzas. Tais
+arquivos estão separados na pasta /back/database/
 
 ### Frontend:
 - Comunicação com o backend via requisições HTTP.
