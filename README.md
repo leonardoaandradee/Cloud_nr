@@ -1,15 +1,13 @@
 # 🍕 Pizzaria CRUD App:
-
 A aplicação simula o funcionamento básico de uma pizzaria, permitindo o gerenciamento de clientes, produtos (pizzas) e pedidos por meio de operações CRUD.
 O sistema é dividido em frontend e backend, que se comunicam através de uma API utilizando Express.
 
-Para "rodar" o projeto via:
-BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
-FRONTEND: 
+# Para "rodar" o projeto via:
+- BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
+- FRONTEND: 
 
 
 ## 🚀 Visão Geral:
-
 O objetivo principal é criar uma estrutura funcional para uma pizzaria digital, onde:
 - Clientes podem ser cadastrados, editados e removidos.
 - Pizzas (produtos) podem ser adicionadas, editada ou removidas do sistema.
@@ -32,7 +30,6 @@ arquivos estão separados na pasta /back/database/
 - A aplicação FRONTEND usará a porta 3000 e deverá estar em visibilidade pública.
 
 ## 🔗 Estrutura de Comunicação:
-
 A aplicação é dividida entre cliente e servidor:
 - O **frontend** envia requisições HTTP (GET, POST, PUT, DELETE) para o backend.
 - O **backend (API Express)** processa essas requisições, interage com a base de dados (ou estrutura simulada) e retorna as respostas adequadas.
@@ -40,28 +37,28 @@ A aplicação é dividida entre cliente e servidor:
 ## 📁 Estrutura de Pastas:
 Aqui você encontra detalhes da estrutura de pastas do projeto;
 
-/back
-├── bin/          # Gerencia a porta de comunicação (4000) e cria o servidor
-├── database/     # Contém o banco de dados SQLite
-├── public/       # (Opcional) Arquivos estáticos se necessário
-├── routes/       # Rotas da API (index.js, clients.js, orders.js, pizzas.js)
+- /back
+- ├── bin/          # Gerencia a porta de comunicação (4000) e cria o servidor
+- ├── database/     # Contém os arquivos de banco de dados
+- ├── public/       # (Opcional) Arquivos estáticos se necessário
+- ├── routes/       # Rotas da API (index.js, clients.js, orders.js, pizzas.js)
 
-/front
-├── bin/              # Gerencia a porta de comunicação (3000) e cria o servidor do frontend
-├── public/           # Contém o arquivo principal index.html e recursos públicos
-│   ├── css/          # Arquivos de estilo (CSS)
-│   ├── js/           # Scripts JS do frontend
-│   ├── components/   # Componentes de interface (imagens, assets, partes de páginas)
-├── src/              # (Opcional) Scripts JS organizados por funcionalidade
-├── pages/            # Páginas HTML adicionais (caso exista mais que o index.html)
-
-
+- /front
+- ├── bin/              # Gerencia a porta de comunicação (3000) e cria o servidor do frontend
+- ├── public/           # Contém o arquivo principal index.html e recursos públicos
+- │   ├── css/          # Arquivos de estilo (CSS)
+- │   ├── js/           # Scripts JS do frontend
+- │   ├── components/   # Componentes de interface (imagens, assets, partes de páginas)
+- ├── src/              # (Opcional) Scripts JS organizados por funcionalidade
+- ├── pages/            # Páginas HTML adicionais (caso exista mais que o index.html)
 
 # Arquivos estáticos:
-index.html
-pizzas.html
+- index.html
+- pizzas.html
+- orders.html
+- clients.html 
 
 ## Participantes do projeto:
-Eduardo Cadiz eduardo.cadiz@faculdadenovaroma.com.br
-Leonardo Andrade leonardo.lima@novaroma.edu.br
-Kaio kaioguilherme649@gmail.com
+- Eduardo Cadiz eduardo.cadiz@faculdadenovaroma.com.br
+- Leonardo Andrade leonardo.lima@novaroma.edu.br
+- Kaio kaioguilherme649@gmail.com
