@@ -58,11 +58,28 @@
   z-index: 10;
 }
 
-
 .w-full.relative {
   position: relative; /* Define o contexto de posicionamento para a overlay-block */
 }
 
+.img-1520 {
+  width: 1520.8px;
+}
+
+.background-color {
+  background-color: #900404;
+  color:white
+}
+
+.container-center {
+  max-width: 1088px;
+  align-items: center;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
 
 
 
