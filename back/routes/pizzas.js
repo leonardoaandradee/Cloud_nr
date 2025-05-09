@@ -1,42 +1,64 @@
 var express = require('express');
 var router = express.Router();
-var sqlite3 = require('sqlite3');
-var path = require('path'); 
+var pizzaModel = require('../models/pizza-model');
 
-// Database connection:
-//
-const dbPath = path.join(__dirname, '../database/pizzasDataBase.db'); 
-const pizzasDB = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Pizzas: Error connecting to database', err.message);
-    } else {
-        console.log('Pizzas: Database connection established successfully.');
-    }
+
+
+// READ - List all pizzas
+router.get('/', (req, res) => {
+    pizzaModel.getPizzas(res);
 });
 
-// Create table in PizzasDataBase.db if it doesn't exist:
-//
-pizzasDB.run(`CREATE TABLE IF NOT EXISTS pizzas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    flavor TEXT NOT NULL,
-    description TEXT NOT NULL,
-    category TEXT NOT NULL,
-    size TEXT NOT NULL,
-    price REAL NOT NULL    
-)`,(err) => {
-    if (err) {
-        console.error('Pizzas: Error creating table in pizzasDataBase.db', err.message);
-    } else {
-        console.log('Pizzas: Table PIZZAS created successfully.');
-    }
+// CREATE - Add a new pizza
+router.post('/', (req, res) => {
+    console.log('Request body:', req.body);
+    const { flavor, description, category, size, price } = req.body;
+    const newPizza = { flavor, description, category, size, price };
+    pizzaModel.createPizza(newPizza, res);
 });
 
-/* GET pizzas listing. */
-// Here you can handle pizzas
-//
-router.get('/', function(req, res, next) {
-    console.log('You are in pizza.js file.');
-    res.send('<h2>Pizza Show: You are in PIZZAS.JS file</h2>');
+// READ - Get pizza by ID
+router.get('/:id', (req, res) => {
+    pizzasDB.get("SELECT * FROM pizzas WHERE id = ?", [req.params.id], (err, row) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+        } else if (!row) {
+            res.status(404).json({ message: 'Ops! Pizza not found' });
+        } else {
+            res.json(row);
+        }
+    });
+});
+
+// UPDATE - Update pizza by ID
+router.put('/:id', (req, res) => {
+    const { flavor, description, category, size, price } = req.body;
+    pizzasDB.run(
+        `UPDATE pizzas SET flavor = ?, description = ?, category = ?, size = ?, price = ? WHERE id = ?`,
+        [flavor, description, category, size, price, req.params.id],
+        function(err) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+            } else if (this.changes === 0) {
+                res.status(404).json({ message: 'Ops! Pizza not found for update' });
+            } else {
+                res.json({ message: 'Pizza successfully updated' });
+            }
+        }
+    );
+});
+
+// DELETE - Delete pizza by ID
+router.delete('/:id', (req, res) => {
+    pizzasDB.run(`DELETE FROM pizzas WHERE id = ?`, [req.params.id], function(err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+        } else if (this.changes === 0) {
+            res.status(404).json({ message: 'Ops! Pizza not found for deletion' });
+        } else {
+            res.json({ message: 'Pizza successfully deleted' });
+        }
+    });
 });
 
 module.exports = router;
