@@ -1,17 +1,15 @@
 # 🍕 Pizzaria CRUD App:
-A aplicação simula o funcionamento básico de uma pizzaria, permitindo o gerenciamento de clientes, produtos (pizzas) e pedidos por meio de operações CRUD.
-O sistema é dividido em frontend e backend, que se comunicam através de uma API utilizando Express.
-
-# Para "rodar" o projeto via:
-- BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
-- FRONTEND: 
-
+A aplicação simula o funcionamento básico de uma pizzaria, permitindo o gerenciamento de clientes, produtos e pedidos por meio de operações CRUD.
 
 ## 🚀 Visão Geral:
 O objetivo principal é criar uma estrutura funcional para uma pizzaria digital, onde:
 - Clientes podem ser cadastrados, editados e removidos.
 - Pizzas (produtos) podem ser adicionadas, editada ou removidas do sistema.
 - Pedidos podem ser feitos relacionando clientes aos produtos escolhidos.
+
+## Para "rodar" o projeto via:
+- BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
+- FRONTEND: 
 
 ## Ferramentas e recursos utlizados:
 
@@ -52,7 +50,30 @@ Aqui você encontra detalhes da estrutura de pastas do projeto;
 - ├── src/              # (Opcional) Scripts JS organizados por funcionalidade
 - ├── pages/            # Páginas HTML adicionais (caso exista mais que o index.html)
 
-# Arquivos estáticos:
+## Estrutura das tabelas usadas:
+- Por favor verifique o arquivo /back/database/database-config.js para detalhes. Atente-se às informações abaixo:
+
+#### Produtos:
+- sabor 
+- descricao 
+- categoria
+- tamanho 
+- preco 
+
+#### Clientes:
+- nome
+- email
+- telefone
+- whatsapp
+
+#### Pedidos:
+- quantidade
+- preco_total
+- endereço_entrega
+- data_pedido
+- status
+
+## Arquivos estáticos:
 - index.html
 - pizzas.html
 - orders.html
