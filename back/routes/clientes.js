@@ -1,21 +1,58 @@
-// Importação do framework Express
 const express = require('express');
 const router = express.Router();
+const clientesModel = require('../models/clientes-model.js');
 
-/**
- * Rota principal de clientes
- * @route GET /clientes
- * @returns {string} Mensagem HTML confirmando acesso à rota
- */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
     try {
-        console.log('Acessando rota principal de clientes');
-        res.status(200).send('<h2>Pizza Show: Você está no arquivo CLIENTES.JS</h2>');
+        clientesModel.getClientes(res);
     } catch (error) {
-        console.error('Erro ao acessar rota de clientes:', error);
-        next(error);
+        res.status(500).json({ erro: 'Erro ao buscar clientes', detalhes: error.message });
     }
 });
 
-// Exportação do módulo router
+router.post('/', (req, res) => {
+    try {
+        const { nome, email, telefone, whatsapp } = req.body;
+        const newCliente = { nome, email, telefone, whatsapp };
+        clientesModel.createCliente(newCliente, res);
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao criar cliente', detalhes: error.message });
+    }
+});
+
+router.get('/:id', (req, res) => {
+    try {
+        clientesModel.getClienteById(req.params.id, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao buscar cliente', 
+            detalhes: error.message 
+        });
+    }
+});
+
+router.put('/:id', (req, res) => {
+    try {
+        const { nome, email, telefone, whatsapp } = req.body;
+        const clienteAtualizado = { nome, email, telefone, whatsapp };
+        clientesModel.updateCliente(req.params.id, clienteAtualizado, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao atualizar cliente', 
+            detalhes: error.message 
+        });
+    }
+});
+
+router.delete('/:id', (req, res) => {
+    try {
+        clientesModel.deleteCliente(req.params.id, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao excluir cliente', 
+            detalhes: error.message 
+        });
+    }
+});
+
 module.exports = router;
