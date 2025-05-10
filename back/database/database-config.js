@@ -58,7 +58,7 @@ db.serialize(() => {
             preco_total      REAL NOT NULL,
             endereco_entrega TEXT NOT NULL,
             data_pedido      TEXT NOT NULL,
-            status          TEXT NOT NULL,
+            status           TEXT NOT NULL,
             FOREIGN KEY (clientes_id) REFERENCES clientes(id)
         )`, (err) => {
         if (err) {
