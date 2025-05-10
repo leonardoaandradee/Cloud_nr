@@ -1,14 +1,28 @@
-var express = require('express');
-var router = express.Router();
-var path = require('path');
+const express = require('express');
+const router = express.Router();
+const path = require('path');
 
-/* GET home page. */
-// Here you load Index.html file
-// The file INDEX.HTML is in Frontend folder
-//
-router.get('/', function(req, res, next) {
-    console.log('You are in index.js file');
-    res.sendFile(path.join(__dirname, '../../front/public/index.html')); 
+/**
+ * Rota principal da aplicação
+ * @route GET /
+ * @returns {File} Retorna o arquivo index.html do frontend
+ */
+router.get('/', (req, res, next) => {
+    try {
+        console.log('Acessando página inicial');
+        const indexPath = path.join(__dirname, '../../front/public/index.html');
+        
+        res.sendFile(indexPath, (err) => {
+            if (err) {
+                console.error('Erro ao carregar arquivo index.html:', err);
+                next(err);
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao processar requisição:', error);
+        next(error);
+    }
 });
 
+// Exportação do módulo router
 module.exports = router;

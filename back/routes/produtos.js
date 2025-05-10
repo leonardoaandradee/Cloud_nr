@@ -1,68 +1,68 @@
-var express = require('express');
-var router = express.Router();
-var produtosModel = require('../models/produtos-model');
+const express = require('express');
+const router = express.Router();
+const produtosModel = require('../models/produtos-model.js');
 
+/**
+ * Rotas para gerenciamento de produtos
+ */
 
-// GET - Listar todos os produtos
-//
+// GET
 router.get('/', (req, res) => {
-    produtosModel.getProdutos(res);
+    try {
+        produtosModel.getProdutos(res);
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar produtos', detalhes: error.message });
+    }
 });
 
-// POST - Criar um novo produto
-//
+// POST
 router.post('/', (req, res) => {
-    console.log('Request body:', req.body);
-    const { sabor, descricao, categoria, tamanho, preco } = req.body;
-    const newProduto = { sabor, descricao, categoria, tamanho, preco };
-    produtosModel.createProdutos(newProduto, res);
+    try {
+        const { sabor, descricao, categoria, tamanho, preco } = req.body;
+        const newProduto = { sabor, descricao, categoria, tamanho, preco };
+        produtosModel.createProdutos(newProduto, res);
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao criar produto', detalhes: error.message });
+    }
 });
 
-// GET by ID - Listar produto por ID
-//
+// GET by ID
 router.get('/:id', (req, res) => {
-    produtosDB.get("SELECT * FROM produtos WHERE id = ?", [req.params.id], (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else if (!row) {
-            res.status(404).json({ message: 'Desculpe! Produtos não encontrado.' });
-        } else {
-            res.json(row);
-        }
-    });
+    try {
+        produtosModel.getProdutoById(req.params.id, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao buscar produto', 
+            detalhes: error.message 
+        });
+    }
 });
 
-// PUT by ID - Atualizar produto por ID
-//
+// PUT by ID
 router.put('/:id', (req, res) => {
-    const { sabor, descricao, categoria, tamanho, preco } = req.body;
-    pizzasDB.run(
-        `UPDATE produtos SET sabor = ?, descricao = ?, categoria = ?, tamanho = ?, preco = ? WHERE id = ?`,
-        [sabor, descricao, categoria, tamanho, preco, req.params.id],
-        function(err) {
-            if (err) {
-                res.status(500).json({ error: err.message });
-            } else if (this.changes === 0) {
-                res.status(404).json({ message: 'Desculpe! Produto não encontrado para atualização.' });
-            } else {
-                res.json({ message: 'Produto atualizado com sucesso.' });
-            }
-        }
-    );
+    try {
+        const { sabor, descricao, categoria, tamanho, preco } = req.body;
+        const produtoAtualizado = { sabor, descricao, categoria, tamanho, preco };
+        produtosModel.updateProduto(req.params.id, produtoAtualizado, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao atualizar produto', 
+            detalhes: error.message 
+        });
+    }
 });
 
-// DELTE - Deletar produto por ID
-//
+// DELETE
 router.delete('/:id', (req, res) => {
-    produtosDB.run(`DELETE FROM produtos WHERE id = ?`, [req.params.id], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else if (this.changes === 0) {
-            res.status(404).json({ message: 'Desculpe! Produto não encontrado para deletar.' });
-        } else {
-            res.json({ message: 'Pizza successfully deleted' });
-        }
-    });
+    try {
+        produtosModel.deleteProdutos(req.params.id, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao excluir produto', 
+            detalhes: error.message 
+        });
+    }
 });
 
+// Exportação do módulo router
 module.exports = router;

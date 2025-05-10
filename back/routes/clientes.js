@@ -1,10 +1,21 @@
-var express = require('express');
-var router = express.Router();
+// Importação do framework Express
+const express = require('express');
+const router = express.Router();
 
-
-router.get('/', function(req, res, next) {
-    console.log('You are in clients.js file.');
-    res.send('<h2>Pizza Show: You are in CLIENTS.JS file</h2>');
+/**
+ * Rota principal de clientes
+ * @route GET /clientes
+ * @returns {string} Mensagem HTML confirmando acesso à rota
+ */
+router.get('/', (req, res, next) => {
+    try {
+        console.log('Acessando rota principal de clientes');
+        res.status(200).send('<h2>Pizza Show: Você está no arquivo CLIENTES.JS</h2>');
+    } catch (error) {
+        console.error('Erro ao acessar rota de clientes:', error);
+        next(error);
+    }
 });
 
+// Exportação do módulo router
 module.exports = router;
