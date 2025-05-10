@@ -1,70 +1,71 @@
 var sqlite3 = require('sqlite3');
 
-// DATABASE CONNECTION:
-const db = new sqlite3.Database('../pizzariadatabase.db', (err) => {
+// Conexão com o banco de dados SQLite:
+const db = new sqlite3.Database('../pizzariaDataBase.db', (err) => {
     if (err) {
-        console.error('Error connecting to the database:', err.message);
+        console.error('Erro conectando ao banco de dados.', err.message);
     } else {
-        console.log('Connected to the database.');
+        console.log('Conectado ao banco de dados.');
     }
 }
 );
 
-// CREATE TABLE IF NOT EXISTS:
+// Criar tabelas no banco de dados se não existirem:
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS pizzas (
+
+    // Tabela Produtos:
+    db.run(`CREATE TABLE IF NOT EXISTS produtos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    flavor TEXT,
-    description TEXT,
-    category TEXT,
-    size TEXT,
-    price TEXT    
+    sabor TEXT NOT NULL,
+    descricao TEXT,
+    categoria TEXT,
+    tamanho TEXT NOT NULL,
+    preco REAL NOT NULL    
 )`, (err) => {
         if (err) {
-            console.error('Pizzas: Error creating table in pizzasDataBase.db', err.message);
+            console.error('Erro criando tabela em pizzariaDataBase.db', err.message);
         } else {
-            console.log('Pizzas: Table PIZZAS created successfully.');
+            console.log('Produtos: Tabela criada com sucesso em pizzariaDataBase.db.');
         }
     });
 
-    // Create table in clientsDataBase.db if it doesn't exist:
+    // Tabela Clientes:
     //
-    db.run(`CREATE TABLE IF NOT EXISTS clients (
+    db.run(`CREATE TABLE IF NOT EXISTS clientes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    nome TEXT NOT NULL,
     email TEXT,
-    phone TEXT NOT NULL
+    telefone TEXT NOT NULL
+    whatsapp TEXT NOT NULL,
 )`, (err) => {
         if (err) {
-            console.error('Clients: Error creating table in clientsDataBase.db', err.message);
+            console.error('Erro criando tabela em pizzariaDataBase.db', err.message);
         } else {
-            console.log('Clients: Table CLIENTS created successfully.');
+            console.log('clientes: Tabela criada com sucesso em pizzariaDataBase.db.');
         }
     });
 
-    // Create table in ordersDataBase.db if it doesn't exist:
-//
-db.run(`CREATE TABLE IF NOT EXISTS orders (
+    // Tabela Pedidos
+    //
+db.run(`CREATE TABLE IF NOT EXISTS pedidos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    client_id INTEGER NOT NULL,
-    pizza_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL,
-    total_price REAL NOT NULL,
-    delivery_address TEXT NOT NULL,
-    order_date TEXT NOT NULL,
+    clientes_id INTEGER NOT NULL,
+    produtos_id INTEGER NOT NULL,
+    quantidade INTEGER NOT NULL,
+    preco_total REAL NOT NULL,
+    endereco_entrega TEXT NOT NULL,
+    data_pedido TEXT NOT NULL,
     status TEXT NOT NULL,
-    FOREIGN KEY (client_id) REFERENCES clients(id)
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 )`,(err) => {
     if (err) {
-        console.error('Orders: Error creating table in ordersDataBase.db', err.message);
+        console.error('Erro criando tabela em pizzariaDataBase.db', err.message);
     } else {
-        console.log('Orders: Table ORDERS created successfully.');
+        console.log('Pedidos: Tabela criada com sucesso em pizzariaDataBase.db.');
     }
 });
 
 });
-
-
 
 // Export the database connection
 module.exports = db;

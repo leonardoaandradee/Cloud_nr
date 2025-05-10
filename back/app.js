@@ -23,17 +23,17 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// IMPORT FROM ROUTES: / ROUTES...
+// Rotas
 var indexRouter = require('./routes/index');
-var pizzasRouter = require('./routes/pizzas');
-var clientsRouter = require('./routes/clients');
-var ordersRouter = require('./routes/orders');
+var produtosRouter = require('./routes/produtos');
+var clientesRouter = require('./routes/clientes');
+var ordensRouter = require('./routes/pedidos');
 
 // ENDPOINTS DEFINITION ADDRESS TO ROUTERS
 app.use('/', indexRouter);
-app.use('/pizzas', pizzasRouter);
-app.use('/clients', clientsRouter);
-app.use('/orders', ordersRouter);
+app.use('/produtos', produtosRouter);
+app.use('/clientes', clientesRouter);
+app.use('/pedidos', ordensRouter);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -66,7 +66,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.send('<h2>Pizza Show: Ops! Something went wrong.</h2>');
+  res.send('<h2>Pizza Show: Desculpe, algo deu errado!</h2>');
 });
 
 module.exports = app;
