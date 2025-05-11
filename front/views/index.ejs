@@ -1,11 +1,104 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+<html lang="pt-br">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+  <title><%= title %></title>
+
+  <!-- CSS  Materialize -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+<body>
+  <nav class="white" role="navigation">
+    <div class="nav-wrapper container">
+      <a href="/" class="logo-container">
+        <img src="/components/pizza_show_logo.png" alt="Pizza Show" class="nav-logo" />
+      </a>
+      <ul class="right hide-on-med-and-down">
+        <li><a href="/produtos" class="black-text nav-item-off nav-item-bright">Produtos</a></li>
+        <li><a href="/clientes" class="black-text nav-item-off nav-item-bright">Clientes</a></li>
+        <li><a href="/pedidos" class="black-text nav-item-off nav-item-bright">Pedidos</a></li>
+      </ul>
+
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+    </div>
+  </nav>
+
+  <!-- Menu Mobile -->
+  <ul id="nav-mobile" class="sidenav">
+    <li><a href="/produtos">Produtos</a></li>
+    <li><a href="/clientes">Clientes</a></li>
+    <li><a href="/pedidos">Pedidos</a></li>
+  </ul>
+  
+  <section>
+    <div class="w-full relative">
+        <img src="https://pizzahut.com.br/assets/images/home/background-header.png" alt="Pizza Show" class="responsive-img img-1520" />
+        <div class="overlay-block">
+          <img src="/components/pizza.png" alt="Pizza apetitosa" class="responsive-img" />
+          <h5>Bem-vindo ao Pizza Show!</h5>
+          <p>As melhores pizzas para você!</p>
+        </div>
+    </div>
+    <div class="container">
+      <div class="section">
+        <div class="row">
+          <div class="col s12 m4">
+            <div class="card">
+              <div class="card-image">
+                <img src="/components/pizza-menu.jpg" alt="Produtos">
+                <span class="card-title">Produtos</span>
+              </div>
+              <div class="card-content">
+                <p>Gerencie o catálogo de pizzas disponíveis.</p>
+              </div>
+              <div class="card-action">
+                <a href="/produtos" class="red-text">Acessar Produtos</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="card">
+              <div class="card-image">
+                <img src="/components/customers.jpg" alt="Clientes">
+                <span class="card-title">Clientes</span>
+              </div>
+              <div class="card-content">
+                <p>Gerencie os dados dos clientes cadastrados.</p>
+              </div>
+              <div class="card-action">
+                <a href="/clientes" class="red-text">Acessar Clientes</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="card">
+              <div class="card-image">
+                <img src="/components/orders.jpg" alt="Pedidos">
+                <span class="card-title">Pedidos</span>
+              </div>
+              <div class="card-content">
+                <p>Controle os pedidos realizados.</p>
+              </div>
+              <div class="card-action">
+                <a href="/pedidos" class="red-text">Acessar Pedidos</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scripts locais -->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="/js/materialize.js"></script>
+  <script src="/js/init.js"></script>
+  <script src="/js/script.js"></script>
+</body>
 </html>

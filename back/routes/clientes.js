@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const clientesModel = require('../models/clientes-model.js');
 
+// GET
 router.get('/', (req, res) => {
     try {
         clientesModel.getClientes(res);
@@ -10,6 +11,7 @@ router.get('/', (req, res) => {
     }
 });
 
+// POST
 router.post('/', (req, res) => {
     try {
         const { nome, email, telefone, whatsapp } = req.body;
@@ -20,6 +22,7 @@ router.post('/', (req, res) => {
     }
 });
 
+// GET by ID
 router.get('/:id', (req, res) => {
     try {
         clientesModel.getClienteById(req.params.id, res);
@@ -31,6 +34,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
+// PUT by ID
 router.put('/:id', (req, res) => {
     try {
         const { nome, email, telefone, whatsapp } = req.body;
@@ -44,6 +48,7 @@ router.put('/:id', (req, res) => {
     }
 });
 
+// DELETE
 router.delete('/:id', (req, res) => {
     try {
         clientesModel.deleteCliente(req.params.id, res);
@@ -55,4 +60,5 @@ router.delete('/:id', (req, res) => {
     }
 });
 
+// Exportação do módulo router
 module.exports = router;

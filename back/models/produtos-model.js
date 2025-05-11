@@ -1,7 +1,6 @@
 const produtosDB = require('../database/database-config');
 
 // Listagem de produtos: getProdutos
-//
 function getProdutos(res) {
     produtosDB.all("SELECT * FROM produtos", [], (err, rows) => {
         if (err) {
@@ -19,7 +18,6 @@ function getProdutos(res) {
 }
 
 // Criar um novo produto: createProdutos
-//
 function createProdutos(produto, res) {
     if (!produto.sabor || !produto.tamanho || !produto.preco) {
         return res.status(400).json({        
@@ -50,7 +48,6 @@ function createProdutos(produto, res) {
 }
 
 // Excluir um produto: deleteProdutos
-//
 function deleteProdutos(id, res) {
     produtosDB.run(
         "DELETE FROM produtos WHERE id = ?",
@@ -77,7 +74,6 @@ function deleteProdutos(id, res) {
 }
 
 // Buscar um produto por ID: getProdutoById
-//
 function getProdutoById(id, res) {
     produtosDB.get(
         "SELECT * FROM produtos WHERE id = ?",
@@ -105,7 +101,6 @@ function getProdutoById(id, res) {
 }
 
 // Atualizar um produto: updateProduto
-//
 function updateProduto(id, produto, res) {
     produtosDB.run(
         `UPDATE produtos SET sabor = ?, descricao = ?, categoria = ?, tamanho = ?, preco = ? 
@@ -134,6 +129,7 @@ function updateProduto(id, produto, res) {
     );
 }
 
+// Exporta as funções para serem usadas em outros módulos
 module.exports = {
     getProdutos,
     createProdutos,
