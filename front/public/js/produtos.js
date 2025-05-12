@@ -1,24 +1,28 @@
+const MENSAGENS = {
+    ERRO_CARREGAR: 'Erro ao carregar produtos',
+    ERRO_SALVAR: 'Erro ao salvar produto',
+    ERRO_DELETAR: 'Erro ao excluir produto',
+    ERRO_EDITAR: 'Erro ao carregar produto para edição',
+    CAMPOS_OBRIGATORIOS: 'Por favor, preencha os campos obrigatórios',
+    SUCESSO_SALVAR: 'Produto salvo com sucesso!',
+    SUCESSO_DELETAR: 'Produto excluído com sucesso!',
+    CONFIRMA_DELETAR: 'Tem certeza que deseja excluir este produto?'
+};
+
 let editingProductId = null;
 
 // Função para carregar a lista de produtos
 async function loadProducts() {
     try {
         const response = await fetch(`${CONFIG.API_URL}/produtos`);
-        const data = await response.json();
+        if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
         
-        // A API retorna { sucesso: true, dados: [...] }
-        const products = data.dados || [];
-        
+        const { dados: products = [] } = await response.json();
         const productsList = document.getElementById('products-list');
-        productsList.innerHTML = '';
         
-        if (products.length === 0) {
-            productsList.innerHTML = '<tr><td colspan="6">Nenhum produto encontrado</td></tr>';
-            return;
-        }
-        
-        products.forEach(product => {
-            productsList.innerHTML += `
+        productsList.innerHTML = products.length === 0 
+            ? '<tr><td colspan="6">Nenhum produto encontrado</td></tr>'
+            : products.map(product => `
                 <tr>
                     <td>${product.sabor}</td>
                     <td>${product.descricao || ''}</td>
@@ -26,21 +30,20 @@ async function loadProducts() {
                     <td>${product.tamanho}</td>
                     <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
                     <td>
-                        <button onclick="editProduct(${product.id})" class="btn-small waves-effect waves-light green">Editar
-                            <i class="material-icons">edit</i>
+                        <button onclick="editProduct(${product.id})" class="btn-small waves-effect waves-light green">
+                            Editar<i class="material-icons">edit</i>
                         </button>
-                        <button onclick="deleteProduct(${product.id})" class="btn-small waves-effect waves-light red">Deletar
-                            <i class="material-icons">delete</i>
+                        <button onclick="deleteProduct(${product.id})" class="btn-small waves-effect waves-light red">
+                            Deletar<i class="material-icons">delete</i>
                         </button>
                     </td>
                 </tr>
-            `;
-        });
+            `).join('');
     } catch (error) {
-        console.error('Erro ao carregar produtos:', error);
-        M.toast({html: 'Erro ao carregar produtos'});
-        const productsList = document.getElementById('products-list');
-        productsList.innerHTML = '<tr><td colspan="6">Erro ao carregar produtos</td></tr>';
+        console.error(MENSAGENS.ERRO_CARREGAR, error);
+        M.toast({html: MENSAGENS.ERRO_CARREGAR});
+        document.getElementById('products-list').innerHTML = 
+            '<tr><td colspan="6">Erro ao carregar produtos</td></tr>';
     }
 }
 
@@ -48,15 +51,15 @@ async function loadProducts() {
 async function saveProduct() {
     const form = document.getElementById('registrationForm');
     const formData = {
-        sabor: form.sabor.value.toUpperCase(),
-        descricao: form.descricao.value.toUpperCase(),
-        categoria: form.categoria.value.toUpperCase(),
-        tamanho: form.tamanho.value.toUpperCase(),
+        sabor: form.sabor.value.trim().toUpperCase(),
+        descricao: form.descricao.value.trim().toUpperCase(),
+        categoria: form.categoria.value.trim().toUpperCase(),
+        tamanho: form.tamanho.value.trim().toUpperCase(),
         preco: parseFloat(form.preco.value)
     };
 
-    if (!formData.sabor || !formData.tamanho || !formData.preco) {
-        M.toast({html: 'Por favor, preencha os campos obrigatórios'});
+    if (!formData.sabor || !formData.tamanho || isNaN(formData.preco)) {
+        M.toast({html: MENSAGENS.CAMPOS_OBRIGATORIOS});
         return;
     }
 
@@ -65,29 +68,22 @@ async function saveProduct() {
             ? `${CONFIG.API_URL}/produtos/${editingProductId}`
             : `${CONFIG.API_URL}/produtos`;
             
-        const method = editingProductId ? 'PUT' : 'POST';
-
         const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            method: editingProductId ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
 
         const data = await response.json();
+        if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_SALVAR);
 
-        if (response.ok) {
-            M.toast({html: data.mensagem || 'Produto salvo com sucesso!'});
-            form.reset();
-            editingProductId = null;
-            loadProducts();
-        } else {
-            throw new Error(data.erro || 'Erro ao salvar produto');
-        }
+        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_SALVAR});
+        form.reset();
+        editingProductId = null;
+        await loadProducts();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || 'Erro ao salvar produto'});
+        M.toast({html: error.message || MENSAGENS.ERRO_SALVAR});
     }
 }
 
@@ -98,7 +94,7 @@ async function editProduct(productId) {
         const data = await response.json();
         
         if (!response.ok) {
-            throw new Error(data.erro || 'Erro ao carregar produto');
+            throw new Error(data.erro || MENSAGENS.ERRO_EDITAR);
         }
 
         const product = data.dados;
@@ -116,31 +112,28 @@ async function editProduct(productId) {
         // Atualizar os selects do Materialize
         M.FormSelect.init(document.querySelectorAll('select'));
     } catch (error) {
-        console.error('Erro ao carregar produto:', error);
-        M.toast({html: error.message || 'Erro ao carregar produto para edição'});
+        console.error(MENSAGENS.ERRO_EDITAR, error);
+        M.toast({html: error.message || MENSAGENS.ERRO_EDITAR});
     }
 }
 
 // Função para deletar um produto
 async function deleteProduct(productId) {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
-        try {
-            const response = await fetch(`${CONFIG.API_URL}/produtos/${productId}`, {
-                method: 'DELETE'
-            });
-            
-            const data = await response.json();
+    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
+    
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/produtos/${productId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
 
-            if (response.ok) {
-                M.toast({html: data.mensagem || 'Produto excluído com sucesso!'});
-                loadProducts();
-            } else {
-                throw new Error(data.erro || 'Erro ao excluir produto');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            M.toast({html: error.message || 'Erro ao excluir produto'});
-        }
+        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
+        await loadProducts();
+    } catch (error) {
+        console.error('Erro:', error);
+        M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
     }
 }
 

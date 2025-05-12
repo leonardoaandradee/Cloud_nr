@@ -7,9 +7,12 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - Pizzas (produtos) podem ser adicionadas, editada ou removidas do sistema.
 - Pedidos podem ser feitos relacionando clientes aos produtos escolhidos.
 
-## Para "rodar" o projeto via:
-- BACKEND: /back/npm run dev  -> Acesso direto na pasta /back via terminal
-- FRONTEND: 
+## Para rodar projeto:
+#### BACKEND: /back/npm run dev
+- Após "levantar" seu servidor Backend, libere a porta para modo público e copie o endereço HTTP;    
+#### FRONTEND: /front/npm start
+- Antes de "levantar" sua aplicação Frontend, adicione à variável API_URL, contida em /front/public/js o endereço HTTP de sua aplicação (API) Backend;
+- Libere a porta para modo público;  
 
 ## Ferramentas e recursos utlizados:
 
@@ -19,36 +22,18 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - **NPM** – Gerenciador de pacotes (versão 0.17.4 utilizada no projeto).
 - Estrutura CRUD para: clientes, produtos e pedidos.
 - O servidor BACKEND usado estará rodando na porta 4000 e deverá estar em visibilidade pública.
-- SGBD sqlite3 será usado para gerenciar os arquivos de banco de dados separados: clients, orders e pizzas. Tais
-arquivos estão separados na pasta /back/database/
+- SGBD sqlite3 será usado para gerenciar o arquivos de banco de dados /pizzariaDataBase.db.
 
 ### Frontend:
 - Comunicação com o backend via requisições HTTP.
-- Usou-se como base ferramentas dispostas no site https://materializecss.com/
+- Usou-se como base de estilo CSS, framework https://materializecss.com/
 - A aplicação FRONTEND usará a porta 3000 e deverá estar em visibilidade pública.
+- Insira os dados de endereço de sua API Backend na variável contida em /front/public/js/config.js
 
 ## 🔗 Estrutura de Comunicação:
 A aplicação é dividida entre cliente e servidor:
 - O **frontend** envia requisições HTTP (GET, POST, PUT, DELETE) para o backend.
-- O **backend (API Express)** processa essas requisições, interage com a base de dados (ou estrutura simulada) e retorna as respostas adequadas.
-
-## 📁 Estrutura de Pastas:
-Aqui você encontra detalhes da estrutura de pastas do projeto;
-
-- /back
-- ├── bin/          # Gerencia a porta de comunicação (4000) e cria o servidor
-- ├── database/     # Contém os arquivos de banco de dados
-- ├── public/       # (Opcional) Arquivos estáticos se necessário
-- ├── routes/       # Rotas da API (index.js, clients.js, orders.js, pizzas.js)
-
-- /front
-- ├── bin/              # Gerencia a porta de comunicação (3000) e cria o servidor do frontend
-- ├── public/           # Contém o arquivo principal index.html e recursos públicos
-- │   ├── css/          # Arquivos de estilo (CSS)
-- │   ├── js/           # Scripts JS do frontend
-- │   ├── components/   # Componentes de interface (imagens, assets, partes de páginas)
-- ├── src/              # (Opcional) Scripts JS organizados por funcionalidade
-- ├── pages/            # Páginas HTML adicionais (caso exista mais que o index.html)
+- O **backend (API Express)** processa essas requisições, interage com a base de dados.
 
 ## Estrutura das tabelas usadas:
 - Por favor verifique o arquivo /back/database/database-config.js para detalhes. Atente-se às informações abaixo:
@@ -59,13 +44,11 @@ Aqui você encontra detalhes da estrutura de pastas do projeto;
 - categoria
 - tamanho 
 - preco 
-
 #### Clientes:
 - nome
 - email
 - telefone
 - whatsapp
-
 #### Pedidos:
 - quantidade
 - preco_total
@@ -74,10 +57,7 @@ Aqui você encontra detalhes da estrutura de pastas do projeto;
 - status
 
 ## Arquivos estáticos:
-- index.html
-- pizzas.html
-- orders.html
-- clients.html 
+- Imagens contidas em /front/components/images
 
 ## Participantes do projeto:
 - Eduardo Cadiz eduardo.cadiz@faculdadenovaroma.com.br
