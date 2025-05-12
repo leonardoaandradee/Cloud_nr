@@ -31,10 +31,10 @@ async function loadProducts() {
                     <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
                     <td>
                         <button onclick="editProduct(${product.id})" class="btn-small waves-effect waves-light green">
-                            Editar<i class="material-icons">edit</i>
+                            <i class="material-icons">edit</i>
                         </button>
                         <button onclick="deleteProduct(${product.id})" class="btn-small waves-effect waves-light red">
-                            Deletar<i class="material-icons">delete</i>
+                            <i class="material-icons">delete</i>
                         </button>
                     </td>
                 </tr>

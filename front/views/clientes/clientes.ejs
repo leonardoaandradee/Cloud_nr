@@ -41,7 +41,7 @@
           
           <div class="input-field col s6">
             <input id="clientName" name="nome" type="text" class="validate">
-            <label for="clientName"><b>Nome:</b></label>
+            <label for="clientName"><span style="color: red;">* </span><b>Nome:</b></label>
           </div>
 
           <div class="input-field col s6">
@@ -51,12 +51,32 @@
 
           <div class="input-field col s6">
             <input id="clientPhone" name="telefone" type="text" class="validate">
-            <label for="clientPhone"><b>Telefone:</b></label>
+            <label for="clientPhone"><span style="color: red;">* </span><b>Telefone:</b></label>
           </div>
 
           <div class="input-field col s6">
-            <input id="clientCep" name="cep" type="text" class="validate">
+            <input id="clientCep" name="cep" type="text" class="validate" onblur="buscarCep()">
             <label for="clientCep"><b>CEP:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientRua" name="rua" type="text" class="validate">
+            <label for="clientRua"><b>Rua:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientBairro" name="bairro" type="text" class="validate">
+            <label for="clientBairro"><b>Bairro:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientCidade" name="cidade" type="text" class="validate">
+            <label for="clientCidade"><b>Cidade:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientEstado" name="estado" type="text" class="validate">
+            <label for="clientEstado"><b>Estado:</b></label>
           </div>
 
           <div class="input-field col s12">
@@ -79,8 +99,8 @@
             <th>Email</th>
             <th>Telefone</th>
             <th>CEP</th>
-            <th>Complemento</th>
-            <th>Ações</th>
+            <th>Endereço</th>
+            <th>Editar/Deletar</th>
           </tr>
         </thead>
         <tbody id="clients-list">

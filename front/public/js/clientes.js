@@ -23,26 +23,58 @@ async function loadClients() {
             ? '<tr><td colspan="6">Nenhum cliente encontrado</td></tr>'
             : clients.map(client => `
                 <tr>
-                    <td>${client.nome}</td>
+                    <td>${client.nome || ''}</td>
                     <td>${client.email || ''}</td>
                     <td>${client.telefone || ''}</td>
                     <td>${client.CEP || ''}</td>
-                    <td>${client.complemento || ''}</td>
                     <td>
-                        <button onclick="editClient(${client.id})" class="btn-small waves-effect waves-light green">
-                            Editar<i class="material-icons">edit</i>
+                        ${client.rua || ''} ${client.complemento ? ', ' + client.complemento : ''}<br>
+                        ${client.bairro ? client.bairro + ', ' : ''}${client.cidade || ''} - ${client.estado || ''}
+                    </td>
+                    <td>
+                        <button onclick="editClient('${client.id}')" class="btn-small waves-effect waves-light green">
+                            <i class="material-icons">edit</i>
                         </button>
-                        <button onclick="deleteClient(${client.id})" class="btn-small waves-effect waves-light red">
-                            Deletar<i class="material-icons">delete</i>
+                        <button onclick="deleteClient('${client.id}')" class="btn-small waves-effect waves-light red">
+                            <i class="material-icons">delete</i>
                         </button>
                     </td>
                 </tr>
             `).join('');
     } catch (error) {
-        console.error(MENSAGENS.ERRO_CARREGAR, error);
+        console.error('Erro ao carregar clientes:', error);
         M.toast({html: MENSAGENS.ERRO_CARREGAR});
         document.getElementById('clients-list').innerHTML = 
             '<tr><td colspan="6">Erro ao carregar clientes</td></tr>';
+    }
+}
+
+async function buscarCep() {
+    const cepInput = document.getElementById('clientCep');
+    const cep = cepInput.value.replace(/\D/g, '');
+
+    if (cep.length !== 8) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/viacep/${cep}`);
+        const data = await response.json();
+
+        if (data.erro) {
+            M.toast({html: 'CEP não encontrado. Por favor, preencha os dados manualmente.'});
+            return;
+        }
+
+        document.getElementById('clientRua').value = data.logradouro;
+        document.getElementById('clientBairro').value = data.bairro;
+        document.getElementById('clientCidade').value = data.localidade;
+        document.getElementById('clientEstado').value = data.uf;
+        
+        M.updateTextFields();
+    } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        M.toast({html: 'Erro ao buscar CEP. Por favor, preencha os dados manualmente.'});
     }
 }
 
@@ -53,6 +85,10 @@ async function saveClient() {
         email: form.email.value.trim().toLowerCase(),
         telefone: form.telefone.value.trim(),
         CEP: form.cep.value.trim(),
+        rua: form.rua.value.trim().toUpperCase(),
+        bairro: form.bairro.value.trim().toUpperCase(),
+        cidade: form.cidade.value.trim().toUpperCase(),
+        estado: form.estado.value.trim().toUpperCase(),
         complemento: form.complemento.value.trim().toUpperCase()
     };
 
@@ -98,6 +134,10 @@ async function editClient(clientId) {
         form.email.value = client.email || '';
         form.telefone.value = client.telefone;
         form.cep.value = client.CEP || '';
+        form.rua.value = client.rua || '';
+        form.bairro.value = client.bairro || '';
+        form.cidade.value = client.cidade || '';
+        form.estado.value = client.estado || '';
         form.complemento.value = client.complemento || '';
         
         editingClientId = clientId;

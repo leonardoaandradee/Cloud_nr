@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <title>Pedidos - Pizza Show</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+<body>
+    <!-- Menu Desktop -->
+    <nav class="white" role="navigation">
+        <div class="nav-wrapper container">
+            <a href="/" class="logo-container">
+                <img src="../components/images/logo_pizzashow_01.png" alt="Pizza Show" class="nav-logo" />
+            </a>
+            <ul class="right hide-on-med-and-down">
+                <li><a href="/produtos" class="black-text nav-item-off nav-item-bright">Produtos</a></li>
+                <li><a href="/clientes" class="black-text nav-item-off nav-item-bright">Clientes</a></li>
+                <li><a href="/pedidos" class="nav-item-off nav-item-bright" style="color: #900404">Pedidos</a></li>
+            </ul>
+            <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+        </div>
+    </nav>
+
+    <!-- Menu Mobile -->
+    <ul id="nav-mobile" class="sidenav">
+        <li><a href="/produtos">Produtos</a></li>
+        <li><a href="/clientes">Clientes</a></li>
+        <li><a href="/pedidos">Pedidos</a></li>
+    </ul>
+
+    <div class="container">
+        <div class="row">
+            <form id="orderForm" class="col s12">
+                <div class="row">
+                    <h5><b>Novo Pedido:</b></h5>
+                    
+                    <!-- Cliente -->
+                    <div class="input-field col s6">
+                        <input type="text" id="phoneSearch" class="validate">
+                        <label for="phoneSearch"><b>Telefone do Cliente:</b></label>
+                    </div>
+                    <div class="col s6">
+                        <div id="clienteInfo" class="card-panel" style="display: none;">
+                            <!-- Info do cliente será exibida aqui -->
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="input-field col s12">
+                        <label for="endereco"><b>Endereço de Entrega:</b></label><br><br>
+                        <select id="endereco" name="endereco_entrega" class="browser-default" required>
+                            <option value="" disabled selected>Selecione o endereço de entrega</option>
+                        </select>
+                    </div>
+
+                    <!-- Produtos -->
+                    <div id="produtosList">
+                        <div class="row produto-item">
+                            <div class="input-field col s4">
+                                <label for="sabor-select"><b>Sabor:</b></label><br><br>
+                                <select class="sabor-select browser-default" required>
+                                    <option value="" disabled selected>Escolha o sabor</option>
+                                </select>
+                            </div>
+                            <div class="input-field col s3">
+                                <label for="tamanho-select"><b>Tamanho:</b></label><br><br>
+                                <select class="tamanho-select browser-default" required>
+                                    <option value="" disabled selected>Tamanho</option>
+                                </select>
+                            </div>
+                            <div class="input-field col s2">
+                                <input type="number" class="quantidade validate" min="1" value="1">
+                                <label><b>Quantidade:</b></label>
+                            </div>
+                            <div class="input-field col s2">
+                                <input type="text" class="subtotal" disabled>
+                                <label><b>Subtotal (R$):</b></label>
+                            </div>
+                            <div class="col s1">
+                                <button type="button" class="btn waves-effect red" onclick="removeProduto(this)">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Adicionar Item -->
+                    <div class="col s12" style="margin-top: 20px;">
+                        <button type="button" class="btn waves-effect green" onclick="adicionarProdutoRow()">
+                            Adicionar Item
+                            <i class="material-icons right">add</i>
+                        </button>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="col s12 right-align" style="margin-top: 20px;">
+                        <h5><b>Total: R$ <span id="totalPedido">0.00</span></b></h5>
+                    </div>
+
+                    <!-- Botão Confirmar -->
+                    <div class="col s12 center-align" style="margin-top: 20px;">
+                        <button class="btn waves-effect waves-light green" type="submit" id="confirmarPedido">
+                            Confirmar Pedido
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h4>Sucesso!</h4>
+            <p>Pedido realizado com sucesso!</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/config.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="/js/materialize.js"></script>
+    <script src="/js/init.js"></script>
+    <script src="/js/pedidos.js"></script>
+</body>
+</html>
