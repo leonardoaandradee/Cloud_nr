@@ -19,17 +19,17 @@ function getClientes(res) {
 
 // Cria um novo cliente
 function createCliente(cliente, res) {
-    if (!cliente.nome || !cliente.telefone || !cliente.whatsapp) {
+    if (!cliente.nome || !cliente.telefone) {
         return res.status(400).json({        
             erro: 'Dados incompletos',
-            detalhes: 'Nome, telefone e whatsapp são obrigatórios!'
+            detalhes: 'Nome e telefone são obrigatórios!'
         });
     }
     
     clientesDB.run(
-        `INSERT INTO clientes (nome, email, telefone, whatsapp) 
-         VALUES (?, ?, ?, ?)`,
-        [cliente.nome, cliente.email, cliente.telefone, cliente.whatsapp],
+        `INSERT INTO clientes (nome, email, telefone, CEP, complemento) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP, cliente.complemento],
         function(err) {
             if (err) {
                 console.error("Erro ao inserir cliente:", err.message);
@@ -103,9 +103,9 @@ function getClienteById(id, res) {
 // Atualiza um cliente
 function updateCliente(id, cliente, res) {
     clientesDB.run(
-        `UPDATE clientes SET nome = ?, email = ?, telefone = ?, whatsapp = ? 
+        `UPDATE clientes SET nome = ?, email = ?, telefone = ?, CEP = ?, complemento = ? 
          WHERE id = ?`,
-        [cliente.nome, cliente.email, cliente.telefone, cliente.whatsapp, id],
+        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP, cliente.complemento, id],
         function(err) {
             if (err) {
                 console.error("Erro ao atualizar cliente:", err.message);

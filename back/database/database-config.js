@@ -39,7 +39,8 @@ db.serialize(() => {
             nome        TEXT NOT NULL,
             email       TEXT,
             telefone    TEXT NOT NULL,
-            whatsapp    TEXT NOT NULL
+            CEP         TEXT,
+            complemento TEXT
         )`, (err) => {
         if (err) {
             console.error('Erro criando tabela clientes:', err.message);
