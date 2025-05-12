@@ -11,7 +11,6 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
   <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
-  <link rel='stylesheet' href='/stylesheets/style.css' />
 
 </head>
 
@@ -19,10 +18,10 @@
   <nav class="white" role="navigation">
     <div class="nav-wrapper container">
       <a href="/" class="logo-container">
-        <img src="/components/pizza_show_logo.png" alt="Pizza Show" class="nav-logo" />
+        <img src="../components/images/logo_pizzashow_01.png" alt="Pizza Show" class="nav-logo" />
       </a>
       <ul class="right hide-on-med-and-down">
-        <li><a href="/produtos" class="nav-item-off nav-item-bright" style="color: red">Pizzas</a></li>
+        <li><a href="/produtos" class="nav-item-off nav-item-bright" style="color: #900404">Produtos</a></li>
         <li><a href="/clientes" class="black-text nav-item-off nav-item-bright">Clientes</a></li>
         <li><a href="/pedidos" class="black-text nav-item-off nav-item-bright">Pedidos</a></li>
       </ul>
@@ -31,39 +30,42 @@
     </div>
   </nav>
 
-  <div class="conteiner">
+  <!-- Menu Mobile -->
+  <ul id="nav-mobile" class="sidenav">
+    <li><a href="/produtos">Produtos</a></li>
+    <li><a href="/clientes">Clientes</a></li>
+    <li><a href="/pedidos">Pedidos</a></li>
+  </ul>
+
+  <div class="container">
 
     <div class="row">
       <form id="registrationForm" class="col s12">
         <div class="row">
           <h5><b>Produtos:</b></h5>
           
-          <!-- Flavor -->
           <div class="input-field col s6">
-            <input id="pizzaFlavor" name="flavor" type="text" class="validate">
-            <label for="pizzaFlavor"><b>Sabor:</b></label>
+            <input id="productName" name="sabor" type="text" class="validate">
+            <label for="productName"><b>Sabor:</b></label>
           </div>
 
-          <!-- Description -->
           <div class="input-field col s6">
-            <input id="pizzaDescription" name="description" type="text" class="validate">
-            <label for="pizzaDescription"><b>Descrição:</b></label>
+            <input id="productDescription" name="descricao" type="text" class="validate">
+            <label for="productDescription"><b>Descrição:</b></label>
           </div>
 
-          <!-- Category -->
           <div class="input-field col s6">
-            <label for="pizzaCatg"><b>Categoria:</b></label><br><br>
-            <select name="category" id="pizzaCatg" class="browser-default" autocomplete="on">
+            <label for="productCategory"><b>Categoria:</b></label><br><br>
+            <select name="categoria" id="productCategory" class="browser-default" autocomplete="on">
                 <option value="" disabled selected>Selecione:</option>
                 <option value="Tradicional">Tradicional</option>               
                 <option value="Especial">Especial</option>
             </select>           
           </div>
 
-          <!-- Size -->
           <div class="input-field col s6">
-            <label for="pizzaSize"><b>Tamanho:</b></label><br><br>
-            <select name="size" id="pizzaSize" class="browser-default" autocomplete="on">
+            <label for="productSize"><b>Tamanho:</b></label><br><br>
+            <select name="tamanho" id="productSize" class="browser-default" autocomplete="on">
                 <option value="" disabled selected>Selecione:</option>
                 <option value="Pequena">Pequena</option>               
                 <option value="Média">Média</option>
@@ -72,132 +74,55 @@
             </select>           
           </div>
 
-          <!-- Price -->
           <div class="input-field col s6">
-            <input id="pizzaPrice" name="price" type="number" class="validate">
-            <label for="pizzaPrice"><b>Preço:</b></label>
+            <input id="productPrice" name="preco" type="number" step="0.01" class="validate">
+            <label for="productPrice"><b>Preço:(R$)</b></label>
           </div>
 
-          <!-- Save -->
           <div class="input-field col s6">
-            <button class="btn waves-effect waves-light" type="button" name="action" onclick="savePizza()">Salvar
+            <button class="btn waves-effect green" type="button" onclick="saveProduct()">Salvar
               <i class="material-icons right">send</i>
             </button>
           </div>
-
         </div>
       </form>
-    </div>
 
-    <table> 
-      <thead>
-        <tr>
-            <th> Sabor:</th>
-            <th> Descrição:</th>
-            <th> Categoria:</th>
-            <th> Tamanho:</th>
-            <th> Preço:</th>
-        </tr>
-      </thead>
-      <h5><b>Nossos produtos:</b></h5>
-      <tbody id="products-list">
-        <!-- A lista de pizzas e seus dados vem pra cá -->
-      </tbody>
-    </table>
+      <table class="striped"> 
+        <thead>
+          <tr>
+              <th>Sabor</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Tamanho</th>
+              <th>Preço (R$)</th>
+              <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="products-list">
+          <!-- Produtos serão carregados aqui via JavaScript -->
+        </tbody>
+      </table>
 
-    <!-- Formulário de Cadastro -->
-    <div class="form-container">
-        <h2>Cadastrar produto:</h2>
-        <form id="produtoForm">
-            <input type="text" id="sabor" placeholder="Sabor" required>
-            <input type="text" id="descricao" placeholder="Descrição">
-            <input type="text" id="categoria" placeholder="Categoria">
-            <input type="text" id="tamanho" placeholder="Tamanho" required>
-            <input type="number" id="preco" placeholder="Preço" step="0.01" required>
-            <button type="submit">Cadastrar</button>
-        </form>
-    </div>
+      <!-- Modal de Sucesso -->
+      <div id="successModal" class="modal">
+        <div class="modal-content">
+          <h4>Sucesso!</h4>
+          <p>Produto salvo com sucesso!</p>
+        </div>
+        <div class="modal-footer">
+          <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+        </div>
+      </div>
 
-    <!-- Lista de Produtos -->
-    <div class="produtos-list">
-        <h2>Produtos Cadastradas</h2>
-        <div id="produtosContainer"></div>
-    </div>
-
-  </div>
-
-  <div id="successModal" class="modal">
-    <div class="modal-content">
-      <h4 id="successModalTitle">Sucesso!</h4>
-      <p id="successModalMessage">Operação realizada com sucesso!</p>
-    </div>
-    <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
     </div>
   </div>
 
   <!-- Scripts -->
+  <script src="/js/config.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="/js/materialize.js"></script>
   <script src="/js/init.js"></script>
-  <script src="/js/script.js"></script>
-  <script src="/javascripts/produtos.js"></script>
-
-  <script>
-    const API_URL = '<%= apiUrl %>';
-    
-    async function loadPizzas() {
-        try {
-            const response = await fetch(`${API_URL}/produtos`);
-            const pizzas = await response.json();
-            const tbody = document.getElementById('products-list');
-            tbody.innerHTML = pizzas.map(pizza => `
-                <tr>
-                    <td>${pizza.flavor}</td>
-                    <td>${pizza.description}</td>
-                    <td>${pizza.category}</td>
-                    <td>${pizza.size}</td>
-                    <td>R$ ${pizza.price}</td>
-                </tr>
-            `).join('');
-        } catch (error) {
-            console.error('Erro ao carregar pizzas:', error);
-            M.toast({html: 'Erro ao carregar pizzas'});
-        }
-    }
-
-    async function savePizza() {
-        const formData = new FormData(document.getElementById('registrationForm'));
-        const pizza = Object.fromEntries(formData);
-        
-        try {
-            const response = await fetch(`${API_URL}/produtos`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(pizza)
-            });
-
-            if (response.ok) {
-                M.Modal.getInstance(document.getElementById('successModal')).open();
-                loadPizzas();
-                document.getElementById('registrationForm').reset();
-            } else {
-                throw new Error('Erro ao salvar pizza');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            M.toast({html: 'Erro ao salvar pizza'});
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        loadPizzas();
-        M.Modal.init(document.querySelectorAll('.modal'));
-    });
-  </script>
+  <script src="/js/produtos.js"></script>
 
 </body>
-
 </html>

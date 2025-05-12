@@ -1,32 +1,20 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-const apiUrl = 'http://localhost:4000'; // URL do backend
-
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Pizza Show' });
+router.get('/', (req, res) => {
+    res.render('index', { title: 'Pizza Show' });
 });
 
-router.get('/produtos', function(req, res, next) {
-  res.render('produtos/produtos', { 
-    title: 'Produtos - Pizza Show',
-    apiUrl: apiUrl
-  });
+router.get('/produtos', (req, res) => {
+    res.render('produtos/produtos', { title: 'Produtos - Pizza Show' });
 });
 
-router.get('/clientes', function(req, res, next) {
-  res.render('clientes/clientes', { 
-    title: 'Clientes - Pizza Show',
-    apiUrl: apiUrl
-  });
+router.get('/clientes', (req, res) => {
+    res.render('clientes/clientes', { title: 'Clientes - Pizza Show' });
 });
 
-router.get('/pedidos', function(req, res, next) {
-  res.render('pedidos/pedidos', { 
-    title: 'Pedidos - Pizza Show',
-    apiUrl: apiUrl
-  });
+router.get('/pedidos', (req, res) => {
+    res.render('pedidos/pedidos', { title: 'Pedidos - Pizza Show' });
 });
 
 module.exports = router;

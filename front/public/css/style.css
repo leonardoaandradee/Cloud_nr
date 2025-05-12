@@ -6,6 +6,16 @@
  * Made By MaterializeCSS.com
  */
 
+body {
+  background-image: url('../components/images/background_03.png');
+  background-size: cover;         /* Ajusta a imagem para cobrir toda a tela */
+  background-repeat: no-repeat;   /* Não repete a imagem */
+  background-position: center;    /* Centraliza a imagem */
+  height: 100vh;                  /* Garante altura total da viewport */
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
 .icon-block {
   padding: 0 15px;
 }
@@ -17,10 +27,14 @@
 }
 
 .nav-logo {
-  height: 100%;
-  max-height: 64px;
+  height: 64px;
   padding: 5px 0;
-  vertical-align: middle;
+}
+
+.logo-container {
+  height: 64px;
+  display: flex;
+  align-items: center;
 }
 
 .logo{
@@ -46,6 +60,7 @@
 
 .nav-item-bright:hover {
   background-color:#900404;
+  color: white !important;
 }
 
 .py-12 {
