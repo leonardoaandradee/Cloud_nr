@@ -1,5 +1,5 @@
-# 🍕 Pizzaria CRUD App:
-A aplicação simula o funcionamento básico de uma pizzaria, permitindo o gerenciamento de clientes, produtos e pedidos por meio de operações CRUD.
+## 🍕 Pizzaria CRUD App:
+A aplicação simula o funcionamento básico de um sistema para uma pizzaria, permitindo o gerenciamento de clientes, produtos e pedidos por meio de operações CRUD.
 
 ## 🚀 Visão Geral:
 O objetivo principal é criar uma estrutura funcional para uma pizzaria digital, onde:
@@ -23,12 +23,18 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - Estrutura CRUD para: clientes, produtos e pedidos.
 - O servidor BACKEND usado estará rodando na porta 4000 e deverá estar em visibilidade pública.
 - SGBD sqlite3 será usado para gerenciar o arquivos de banco de dados /pizzariaDataBase.db.
+- A API Via CEP está implementada para complementação de endereços de forma automática através do CEP.
 
 ### Frontend:
 - Comunicação com o backend via requisições HTTP.
 - Usou-se como base de estilo CSS, framework https://materializecss.com/
 - A aplicação FRONTEND usará a porta 3000 e deverá estar em visibilidade pública.
 - Insira os dados de endereço de sua API Backend na variável contida em /front/public/js/config.js
+
+#### Bibliotecas:
+- AXIOS
+- EJS
+- SQLITE3
 
 ## 🔗 Estrutura de Comunicação:
 A aplicação é dividida entre cliente e servidor:
@@ -48,7 +54,8 @@ A aplicação é dividida entre cliente e servidor:
 - nome
 - email
 - telefone
-- whatsapp
+- CEP
+- complemento
 #### Pedidos:
 - quantidade
 - preco_total
@@ -57,7 +64,7 @@ A aplicação é dividida entre cliente e servidor:
 - status
 
 ## Arquivos estáticos:
-- Imagens contidas em /front/components/images
+- Imagens: /front/components/images
 
 ## Participantes do projeto:
 - Eduardo Cadiz eduardo.cadiz@faculdadenovaroma.com.br
