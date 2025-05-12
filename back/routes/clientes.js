@@ -14,8 +14,8 @@ router.get('/', (req, res) => {
 // POST
 router.post('/', (req, res) => {
     try {
-        const { nome, email, telefone, CEP, complemento } = req.body;
-        const newCliente = { nome, email, telefone, CEP, complemento };
+        const { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento } = req.body;
+        const newCliente = { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento };
         clientesModel.createCliente(newCliente, res);
     } catch (error) {
         res.status(500).json({ erro: 'Erro ao criar cliente', detalhes: error.message });
@@ -37,8 +37,8 @@ router.get('/:id', (req, res) => {
 // PUT by ID
 router.put('/:id', (req, res) => {
     try {
-        const { nome, email, telefone, CEP, complemento } = req.body;
-        const clienteAtualizado = { nome, email, telefone, CEP, complemento };
+        const { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento } = req.body;
+        const clienteAtualizado = { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento };
         clientesModel.updateCliente(req.params.id, clienteAtualizado, res);
     } catch (error) {
         res.status(500).json({ 

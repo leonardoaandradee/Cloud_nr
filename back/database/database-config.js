@@ -40,6 +40,10 @@ db.serialize(() => {
             email       TEXT,
             telefone    TEXT NOT NULL,
             CEP         TEXT,
+            rua         TEXT,
+            bairro      TEXT,
+            cidade      TEXT,
+            estado      TEXT,
             complemento TEXT
         )`, (err) => {
         if (err) {
@@ -54,8 +58,6 @@ db.serialize(() => {
         CREATE TABLE IF NOT EXISTS pedidos (
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             clientes_id      INTEGER NOT NULL,
-            produtos_id      INTEGER NOT NULL,
-            quantidade       INTEGER NOT NULL,
             preco_total      REAL NOT NULL,
             endereco_entrega TEXT NOT NULL,
             data_pedido      TEXT NOT NULL,
@@ -66,6 +68,25 @@ db.serialize(() => {
             console.error('Erro criando tabela pedidos:', err.message);
         } else {
             console.log('Tabela pedidos criada com sucesso.');
+        }
+    });
+    
+    // Tabela Itens do Pedido
+    db.run(`
+        CREATE TABLE IF NOT EXISTS itens_pedido (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            pedidos_id  INTEGER NOT NULL,
+            produtos_id INTEGER NOT NULL,
+            quantidade  INTEGER NOT NULL,
+            preco_unitario REAL NOT NULL,
+            subtotal   REAL NOT NULL,
+            FOREIGN KEY (pedidos_id) REFERENCES pedidos(id),
+            FOREIGN KEY (produtos_id) REFERENCES produtos(id)
+        )`, (err) => {
+        if (err) {
+            console.error('Erro criando tabela itens_pedido:', err.message);
+        } else {
+            console.log('Tabela itens_pedido criada com sucesso.');
         }
     });
 });

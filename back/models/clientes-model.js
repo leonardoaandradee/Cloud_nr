@@ -27,9 +27,10 @@ function createCliente(cliente, res) {
     }
     
     clientesDB.run(
-        `INSERT INTO clientes (nome, email, telefone, CEP, complemento) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP, cliente.complemento],
+        `INSERT INTO clientes (nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP, 
+         cliente.rua, cliente.bairro, cliente.cidade, cliente.estado, cliente.complemento],
         function(err) {
             if (err) {
                 console.error("Erro ao inserir cliente:", err.message);
@@ -103,9 +104,12 @@ function getClienteById(id, res) {
 // Atualiza um cliente
 function updateCliente(id, cliente, res) {
     clientesDB.run(
-        `UPDATE clientes SET nome = ?, email = ?, telefone = ?, CEP = ?, complemento = ? 
+        `UPDATE clientes SET nome = ?, email = ?, telefone = ?, CEP = ?, 
+         rua = ?, bairro = ?, cidade = ?, estado = ?, complemento = ? 
          WHERE id = ?`,
-        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP, cliente.complemento, id],
+        [cliente.nome, cliente.email, cliente.telefone, cliente.CEP,
+         cliente.rua, cliente.bairro, cliente.cidade, cliente.estado, 
+         cliente.complemento, id],
         function(err) {
             if (err) {
                 console.error("Erro ao atualizar cliente:", err.message);
