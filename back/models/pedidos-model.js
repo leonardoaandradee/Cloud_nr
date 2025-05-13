@@ -3,10 +3,14 @@ const pedidosDB = require('../database/database-config');
 // Busca todos os pedidos
 function getPedidos(res) {
     pedidosDB.all(`
-        SELECT p.*, c.nome as cliente_nome, pr.sabor as produto_sabor
+        SELECT p.*, c.nome as cliente_nome, 
+               GROUP_CONCAT(pr.sabor || ' (' || ip.quantidade || 'x)') as itens,
+               p.preco_total as total
         FROM pedidos p
         JOIN clientes c ON p.clientes_id = c.id
-        JOIN produtos pr ON p.produtos_id = pr.id
+        JOIN itens_pedido ip ON p.id = ip.pedidos_id
+        JOIN produtos pr ON ip.produtos_id = pr.id
+        GROUP BY p.id
     `, [], (err, rows) => {
         if (err) {
             console.error("Erro ao buscar pedidos:", err.message);
@@ -22,41 +26,72 @@ function getPedidos(res) {
     });
 }
 
-// Cria um novo pedido
+// Cria um novo pedido com transação
 function createPedido(pedido, res) {
-    if (!pedido.clientes_id || !pedido.produtos_id || !pedido.quantidade || !pedido.endereco_entrega) {
-        return res.status(400).json({        
+    if (!pedido.clientes_id || !pedido.itens || !pedido.endereco_entrega) {
+        return res.status(400).json({
             erro: 'Dados incompletos',
-            detalhes: 'Cliente, produto, quantidade e endereço são obrigatórios!'
+            detalhes: 'Cliente, itens e endereço são obrigatórios!'
         });
     }
 
-    // Adiciona data atual e status inicial
-    pedido.data_pedido = new Date().toISOString();
-    pedido.status = 'Pendente';
-    
-    pedidosDB.run(
-        `INSERT INTO pedidos (clientes_id, produtos_id, quantidade, preco_total, 
-            endereco_entrega, data_pedido, status) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [pedido.clientes_id, pedido.produtos_id, pedido.quantidade, 
-         pedido.preco_total, pedido.endereco_entrega, pedido.data_pedido, 
-         pedido.status],
-        function(err) {
-            if (err) {
-                console.error("Erro ao inserir pedido:", err.message);
-                return res.status(500).json({
-                    erro: 'Erro ao inserir pedido',
-                    detalhes: err.message
+    pedidosDB.serialize(() => {
+        pedidosDB.run('BEGIN TRANSACTION');
+
+        pedidosDB.run(
+            `INSERT INTO pedidos (clientes_id, preco_total, endereco_entrega, data_pedido, status) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+                pedido.clientes_id,
+                pedido.preco_total,
+                pedido.endereco_entrega,
+                new Date().toISOString(),
+                'Pendente'
+            ],
+            function(err) {
+                if (err) {
+                    pedidosDB.run('ROLLBACK');
+                    console.error("Erro ao inserir pedido:", err.message);
+                    return res.status(500).json({
+                        erro: 'Erro ao criar pedido',
+                        detalhes: err.message
+                    });
+                }
+
+                const pedidoId = this.lastID;
+                let itensProcessados = 0;
+
+                pedido.itens.forEach(item => {
+                    pedidosDB.run(
+                        `INSERT INTO itens_pedido (pedidos_id, produtos_id, quantidade, 
+                                                 preco_unitario, subtotal)
+                         VALUES (?, ?, ?, ?, ?)`,
+                        [pedidoId, item.produtos_id, item.quantidade, 
+                         item.preco_unitario, item.subtotal],
+                        (err) => {
+                            if (err) {
+                                pedidosDB.run('ROLLBACK');
+                                console.error("Erro ao inserir item:", err.message);
+                                return res.status(500).json({
+                                    erro: 'Erro ao inserir item do pedido',
+                                    detalhes: err.message
+                                });
+                            }
+                            
+                            itensProcessados++;
+                            if (itensProcessados === pedido.itens.length) {
+                                pedidosDB.run('COMMIT');
+                                res.status(201).json({
+                                    mensagem: 'Pedido criado com sucesso',
+                                    id: pedidoId
+                                });
+                            }
+                        }
+                    );
                 });
             }
-            res.status(201).json({
-                mensagem: 'Pedido criado com sucesso',
-                id: this.lastID,
-                pedido: pedido
-            });
-        }
-    );
+        );
+    });
 }
 
 // Exclui um pedido

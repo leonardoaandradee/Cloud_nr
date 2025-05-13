@@ -14,11 +14,10 @@ router.get('/', (req, res) => {
 // POST - Cria novo pedido
 router.post('/', (req, res) => {
     try {
-        const { clientes_id, produtos_id, quantidade, preco_total, endereco_entrega } = req.body;
+        const { clientes_id, itens, preco_total, endereco_entrega } = req.body;
         const newPedido = { 
-            clientes_id, 
-            produtos_id, 
-            quantidade, 
+            clientes_id,
+            itens, 
             preco_total, 
             endereco_entrega 
         };

@@ -55,38 +55,42 @@ async function carregarProdutos() {
 }
 
 // Funções de manipulação do formulário
-function buscarCliente() {
+async function buscarCliente() {
     const telefone = document.getElementById('phoneSearch').value;
     const cliente = clientesData[telefone];
     const clienteInfo = document.getElementById('clienteInfo');
     
     if (cliente) {
         clienteInfo.style.display = 'block';
-        clienteInfo.innerHTML = `
-            <h6><b>Dados do Cliente:</b></h6>
-            <p><b>Nome:</b> ${cliente.nome}</p>
-            <p><b>Email:</b> ${cliente.email || 'Não informado'}</p>
-            <p><b>Telefone:</b> ${cliente.telefone}</p>
-        `;
+        document.getElementById('clienteNome').textContent = `Nome: ${cliente.nome}`;
+        document.getElementById('clienteTelefone').textContent = `Telefone: ${cliente.telefone}`;
+        document.getElementById('clienteEndereco').textContent = 
+            `Endereço: ${cliente.rua}, ${cliente.bairro}, ${cliente.cidade} - ${cliente.estado}`;
 
         // Atualiza select de endereços
         const enderecoSelect = document.getElementById('endereco');
-        if (cliente.CEP && cliente.complemento) {
-            enderecoSelect.innerHTML = `
-                <option value="" disabled>Selecione o endereço</option>
-                <option value="${cliente.CEP},${cliente.complemento}" selected>
-                    CEP: ${cliente.CEP} - ${cliente.complemento}
-                </option>
-            `;
-        }
+        const enderecoCompleto = `${cliente.rua}, ${cliente.bairro}, ${cliente.cidade} - ${cliente.estado}`;
+        enderecoSelect.innerHTML = `
+            <option value="" disabled>Selecione o endereço</option>
+            <option value="${enderecoCompleto}" selected>${enderecoCompleto}</option>
+        `;
+        
+        M.FormSelect.init(enderecoSelect);
         M.toast({html: 'Cliente encontrado!', classes: 'green'});
     } else {
-        clienteInfo.style.display = 'none';
-        clienteInfo.innerHTML = '';
-        document.getElementById('endereco').innerHTML = 
-            '<option value="" disabled selected>Selecione o endereço de entrega</option>';
+        limparDadosCliente();
         M.toast({html: 'Cliente não encontrado', classes: 'red'});
     }
+}
+
+function limparDadosCliente() {
+    const clienteInfo = document.getElementById('clienteInfo');
+    clienteInfo.style.display = 'none';
+    document.getElementById('clienteNome').textContent = '';
+    document.getElementById('clienteTelefone').textContent = '';
+    document.getElementById('clienteEndereco').textContent = '';
+    document.getElementById('endereco').innerHTML = 
+        '<option value="" disabled selected>Selecione o endereço de entrega</option>';
 }
 
 function removeProduto(element) {
@@ -118,16 +122,17 @@ function adicionarProdutoRow() {
 function calcularSubtotal(event) {
     const row = event.target.closest('.produto-item');
     const quantidade = parseInt(row.querySelector('.quantidade').value) || 0;
-    const tamanho = row.querySelector('.tamanho-select').value;
-    const saborId = parseInt(row.querySelector('.sabor-select').value);
+    const saborSelect = row.querySelector('.sabor-select');
+    const tamanhoSelect = row.querySelector('.tamanho-select');
     
-    if (tamanho && saborId) {
+    if (saborSelect.value && tamanhoSelect.value) {
         const produto = produtosData.find(p => 
-            p.id === saborId && p.tamanho === tamanho
+            p.id === parseInt(saborSelect.value) && p.tamanho === tamanhoSelect.value
         );
         
         if (produto) {
             const subtotal = produto.preco * quantidade;
+            row.querySelector('.preco-unitario').value = produto.preco.toFixed(2);
             row.querySelector('.subtotal').value = subtotal.toFixed(2);
             calcularTotal();
         }
@@ -149,85 +154,132 @@ async function confirmarPedido(event) {
     const endereco = document.getElementById('endereco').value;
     
     if (!cliente || !endereco) {
-        M.toast({html: 'Por favor, selecione um cliente e endereço de entrega'});
+        M.toast({html: 'Por favor, selecione um cliente e endereço de entrega', classes: 'red'});
         return;
     }
 
     const itens = [];
-    let total = 0;
+    let erroValidacao = false;
 
     document.querySelectorAll('.produto-item').forEach(row => {
-        const saborId = row.querySelector('.sabor-select').value;
+        const saborSelect = row.querySelector('.sabor-select');
         const quantidade = parseInt(row.querySelector('.quantidade').value);
+        const precoUnitario = parseFloat(row.querySelector('.preco-unitario').value);
         const subtotal = parseFloat(row.querySelector('.subtotal').value);
 
-        if (saborId && quantidade) {
-            itens.push({
-                produtos_id: parseInt(saborId),
-                quantidade,
-                preco_total: subtotal
-            });
-            total += subtotal;
+        if (!saborSelect.value || !quantidade || isNaN(precoUnitario)) {
+            erroValidacao = true;
+            return;
         }
+
+        itens.push({
+            produtos_id: parseInt(saborSelect.value),
+            quantidade: quantidade,
+            preco_unitario: precoUnitario,
+            subtotal: subtotal
+        });
     });
 
-    if (itens.length === 0) {
-        M.toast({html: 'Adicione pelo menos um produto ao pedido'});
+    if (erroValidacao || itens.length === 0) {
+        M.toast({html: 'Por favor, verifique os produtos do pedido', classes: 'red'});
         return;
     }
+
+    const pedido = {
+        clientes_id: cliente.id,
+        itens: itens,
+        preco_total: parseFloat(document.getElementById('totalPedido').textContent),
+        endereco_entrega: endereco
+    };
 
     try {
         const response = await fetch(`${API_URL}/pedidos`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                clientes_id: cliente.id,
-                produtos_id: itens[0].produtos_id, // Temporário: ajustar para múltiplos produtos
-                quantidade: itens[0].quantidade,
-                preco_total: total,
-                endereco_entrega: endereco
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
         });
 
-        if (response.ok) {
-            M.toast({html: 'Pedido realizado com sucesso!'});
-            document.getElementById('orderForm').reset();
-        } else {
-            throw new Error('Erro ao criar pedido');
-        }
+        if (!response.ok) throw new Error('Erro ao criar pedido');
+
+        M.toast({html: 'Pedido realizado com sucesso!', classes: 'green'});
+        limparFormulario();
     } catch (error) {
-        console.error('Erro ao confirmar pedido:', error);
-        M.toast({html: 'Erro ao criar pedido. Tente novamente.'});
+        console.error('Erro:', error);
+        M.toast({html: 'Erro ao criar pedido', classes: 'red'});
     }
 }
 
-function atualizarSelectsProdutos() {
-    const sabores = produtosData.reduce((acc, p) => {
-        if (!acc.find(item => item.id === p.id)) {
-            acc.push({ id: p.id, sabor: p.sabor });
-        }
-        return acc;
-    }, []);
+function limparFormulario() {
+    document.getElementById('orderForm').reset();
+    document.getElementById('clienteInfo').style.display = 'none';
+    document.getElementById('totalPedido').textContent = '0.00';
+    
+    const produtos = document.getElementById('produtosList');
+    while (produtos.children.length > 1) {
+        produtos.removeChild(produtos.lastChild);
+    }
+    
+    const primeiroItem = produtos.firstChild;
+    primeiroItem.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+        M.FormSelect.init(select);
+    });
+    primeiroItem.querySelectorAll('input').forEach(input => input.value = '');
+}
 
-    const tamanhos = [...new Set(produtosData.map(p => p.tamanho))];
-    
-    const saborOptions = sabores.map(s => 
-        `<option value="${s.id}">${s.sabor}</option>`
-    ).join('');
-    
-    const tamanhoOptions = tamanhos.map(t => 
-        `<option value="${t}">${t}</option>`
-    ).join('');
-    
-    document.querySelectorAll('.sabor-select').forEach(select => {
-        select.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' + saborOptions;
+function atualizarSelectsProdutos() {
+    const sabores = produtosData.reduce((acc, produto) => {
+        if (!acc[produto.id]) {
+            acc[produto.id] = {
+                sabor: produto.sabor,
+                categoria: produto.categoria,
+                tamanhos: []
+            };
+        }
+        acc[produto.id].tamanhos.push({
+            tamanho: produto.tamanho,
+            preco: produto.preco
+        });
+        return acc;
+    }, {});
+
+    document.querySelectorAll('.produto-item').forEach(item => {
+        const saborSelect = item.querySelector('.sabor-select');
+        const categoriaInput = item.querySelector('.categoria-display');
+        const tamanhoSelect = item.querySelector('.tamanho-select');
+
+        // Preenche sabores
+        saborSelect.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' +
+            Object.entries(sabores).map(([id, produto]) => 
+                `<option value="${id}">${produto.sabor}</option>`
+            ).join('');
+
+        // Event listener para sabor
+        saborSelect.addEventListener('change', function() {
+            const produto = sabores[this.value];
+            if (produto) {
+                categoriaInput.value = produto.categoria || '';
+                tamanhoSelect.innerHTML = '<option value="" disabled selected>Escolha o tamanho</option>' +
+                    produto.tamanhos.map(t => 
+                        `<option value="${t.tamanho}" data-preco="${t.preco}">
+                            ${t.tamanho} - R$ ${t.preco.toFixed(2)}
+                        </option>`
+                    ).join('');
+                M.FormSelect.init(tamanhoSelect);
+            }
+        });
+
+        // Event listener para tamanho
+        tamanhoSelect.addEventListener('change', function() {
+            const option = this.selectedOptions[0];
+            if (option) {
+                const preco = parseFloat(option.dataset.preco);
+                const row = this.closest('.produto-item');
+                row.querySelector('.preco-unitario').value = preco.toFixed(2);
+                calcularSubtotal(row);
+            }
+        });
     });
-    
-    document.querySelectorAll('.tamanho-select').forEach(select => {
-        select.innerHTML = '<option value="" disabled selected>Tamanho</option>' + tamanhoOptions;
-    });
-    
+
     M.FormSelect.init(document.querySelectorAll('select'));
 }

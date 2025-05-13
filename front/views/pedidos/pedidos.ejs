@@ -18,10 +18,29 @@
                 <img src="../components/images/logo_pizzashow_01.png" alt="Pizza Show" class="nav-logo" />
             </a>
             <ul class="right hide-on-med-and-down">
-                <li><a href="/produtos" class="black-text nav-item-off nav-item-bright">Produtos</a></li>
-                <li><a href="/clientes" class="black-text nav-item-off nav-item-bright">Clientes</a></li>
-                <li><a href="/pedidos" class="nav-item-off nav-item-bright" style="color: #900404">Pedidos</a></li>
-            </ul>
+                
+        <!-- Menu novo alterado -->
+        <li>
+            <a href="/" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">home</i>
+            Home</a>
+        </li>
+        <li>
+            <a href="/produtos" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
+            Produtos</a>
+        </li>
+        <li>
+            <a href="/clientes" class="black-text nav-item-off nav-item-bright" >
+              <i class="small material-icons" style="vertical-align: middle;">account_box</i>
+            Clientes</a>
+        </li>
+        <li>
+            <a href="/pedidos" class="nav-item-off nav-item-bright" style="color: #900404">
+              <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
+            Pedidos</a>
+        </li>
+      </ul>
             <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
         </div>
     </nav>
@@ -37,16 +56,22 @@
         <div class="row">
             <form id="orderForm" class="col s12">
                 <div class="row">
-                    <h5><b>Novo Pedido:</b></h5>
+                    <i class="medium material-icons">add_shopping_cart</i>
+                    <h5><b>Pedidos</b></h5>
                     
                     <!-- Cliente -->
-                    <div class="input-field col s6">
-                        <input type="text" id="phoneSearch" class="validate">
-                        <label for="phoneSearch"><b>Telefone do Cliente:</b></label>
+                    <div class="input-field col s12 m6">
+                        <input type="text" id="phoneSearch" class="autocomplete">
+                        <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
                     </div>
-                    <div class="col s6">
-                        <div id="clienteInfo" class="card-panel" style="display: none;">
-                            <!-- Info do cliente será exibida aqui -->
+
+                    <!-- Info do Cliente -->
+                    <div class="col s12 m6">
+                        <div id="clienteInfo" class="card-panel grey lighten-4" style="display: none;">
+                            <h6>Dados do Cliente</h6>
+                            <p id="clienteNome"></p>
+                            <p id="clienteTelefone"></p>
+                            <p id="clienteEndereco"></p>
                         </div>
                     </div>
 
@@ -59,30 +84,36 @@
                     </div>
 
                     <!-- Produtos -->
-                    <div id="produtosList">
+                    <div id="produtosList" class="col s12">
                         <div class="row produto-item">
-                            <div class="input-field col s4">
-                                <label for="sabor-select"><b>Sabor:</b></label><br><br>
+                            <div class="input-field col s3">
                                 <select class="sabor-select browser-default" required>
                                     <option value="" disabled selected>Escolha o sabor</option>
                                 </select>
                             </div>
-                            <div class="input-field col s3">
-                                <label for="tamanho-select"><b>Tamanho:</b></label><br><br>
+                            <div class="input-field col s2">
+                                <input type="text" class="categoria-display" readonly>
+                                <label>Categoria</label>
+                            </div>
+                            <div class="input-field col s2">
                                 <select class="tamanho-select browser-default" required>
                                     <option value="" disabled selected>Tamanho</option>
                                 </select>
                             </div>
-                            <div class="input-field col s2">
-                                <input type="number" class="quantidade validate" min="1" value="1">
-                                <label><b>Quantidade:</b></label>
+                            <div class="input-field col s1">
+                                <input type="number" class="quantidade" min="1" value="1">
+                                <label>Qtd</label>
                             </div>
                             <div class="input-field col s2">
-                                <input type="text" class="subtotal" disabled>
-                                <label><b>Subtotal (R$):</b></label>
+                                <input type="text" class="preco-unitario" readonly>
+                                <label>Preço Unit. (R$)</label>
                             </div>
-                            <div class="col s1">
-                                <button type="button" class="btn waves-effect red" onclick="removeProduto(this)">
+                            <div class="input-field col s1">
+                                <input type="text" class="subtotal" readonly>
+                                <label>Total (R$)</label>
+                            </div>
+                            <div class="input-field col s1">
+                                <button type="button" class="btn-small waves-effect waves-light red" onclick="removeProduto(this)">
                                     <i class="material-icons">delete</i>
                                 </button>
                             </div>

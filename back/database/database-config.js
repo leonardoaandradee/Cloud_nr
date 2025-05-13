@@ -71,6 +71,7 @@ db.serialize(() => {
         }
     });
     
+    
     // Tabela Itens do Pedido
     db.run(`
         CREATE TABLE IF NOT EXISTS itens_pedido (
