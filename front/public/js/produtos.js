@@ -18,6 +18,10 @@ async function loadProducts() {
         if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
         
         const { dados: products = [] } = await response.json();
+        
+        // Ordenar produtos por sabor em ordem alfabética
+        products.sort((a, b) => a.sabor.localeCompare(b.sabor));
+        
         const productsList = document.getElementById('products-list');
         
         productsList.innerHTML = products.length === 0 

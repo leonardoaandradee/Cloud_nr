@@ -17,11 +17,17 @@ async function loadClients() {
         if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
         
         const { dados: clients = [] } = await response.json();
+        
+        // Ordenando os clientes por nome em ordem alfabética
+        const sortedClients = clients.sort((a, b) => 
+            a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+        );
+        
         const clientsList = document.getElementById('clients-list');
         
-        clientsList.innerHTML = clients.length === 0 
+        clientsList.innerHTML = sortedClients.length === 0 
             ? '<tr><td colspan="6">Nenhum cliente encontrado</td></tr>'
-            : clients.map(client => `
+            : sortedClients.map(client => `
                 <tr>
                     <td>${client.nome || ''}</td>
                     <td>${client.email || ''}</td>
