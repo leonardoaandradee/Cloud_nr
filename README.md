@@ -55,6 +55,10 @@ A aplicação é dividida entre cliente e servidor:
 - email
 - telefone
 - CEP
+- rua
+- bairro
+- cidade
+- estado
 - complemento
 #### Pedidos:
 - quantidade
