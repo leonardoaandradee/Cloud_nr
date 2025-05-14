@@ -1,9 +1,36 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+/**
+ * Rotas principais do sistema de pizzaria
+ */
+
+// Rota principal - página inicial
+router.get('/', (req, res) => {
+    res.render('pages/index', { 
+        title: 'Pizza Show' 
+    });
+});
+
+// Grupo de rotas para gerenciamento de produtos
+router.get('/produtos', (req, res) => {
+    res.render('pages/produtos/produtos', { 
+        title: 'Produtos - Pizza Show' 
+    });
+});
+
+// Grupo de rotas para gerenciamento de clientes
+router.get('/clientes', (req, res) => {
+    res.render('pages/clientes/clientes', { 
+        title: 'Clientes - Pizza Show' 
+    });
+});
+
+// Grupo de rotas para gerenciamento de pedidos
+router.get('/pedidos', (req, res) => {
+    res.render('pages/pedidos/pedidos', { 
+        title: 'Pedidos - Pizza Show' 
+    });
 });
 
 module.exports = router;

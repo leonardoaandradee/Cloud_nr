@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <title>Pedidos - Pizza Show</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+<body>
+    <!-- Barra de navegação -->
+    <nav class="white" role="navigation">
+        <div class="nav-wrapper container">
+            <a href="/" class="logo-container">
+                <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" class="nav-logo" />
+            </a>
+            <ul class="right hide-on-med-and-down">
+        <li>
+            <a href="/" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">home</i>
+            Home</a>
+        </li>
+        <li>
+            <a href="/produtos" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
+            Produtos</a>
+        </li>
+        <li>
+            <a href="/clientes" class="black-text nav-item-off nav-item-bright" >
+              <i class="small material-icons" style="vertical-align: middle;">account_box</i>
+            Clientes</a>
+        </li>
+        <li>
+            <a href="/pedidos" class="nav-item-off nav-item-bright" style="color: #900404">
+              <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
+            Pedidos</a>
+        </li>
+      </ul>
+            <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+        </div>
+    </nav>
+
+    <!-- Menu Mobile -->
+    <ul id="nav-mobile" class="sidenav">
+        <li><a href="/produtos">Produtos</a></li>
+        <li><a href="/clientes">Clientes</a></li>
+        <li><a href="/pedidos">Pedidos</a></li>
+    </ul>
+
+    <div class="container">
+        <div class="row">
+            <form id="orderForm" class="col s12">
+                <div class="row">
+                    
+                    <h5><b>Pedidos</b></h5>
+                    
+                    <!-- Cliente -->
+                    <div class="input-field col s12 m6">
+                        <input type="text" id="phoneSearch" class="autocomplete">
+                        <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
+                    </div>
+
+                    <!-- Info do Cliente -->
+                    <div class="col s12 m6">
+                        <div id="clienteInfo" class="card-panel grey lighten-4" style="display: none;">
+                            <h6>Dados do Cliente</h6>
+                            <p id="clienteNome"></p>
+                            <p id="clienteTelefone"></p>
+                            <p id="clienteEndereco"></p>
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="input-field col s12">
+                        <label for="endereco"><b>Endereço de Entrega:</b></label><br><br>
+                        <select id="endereco" name="endereco_entrega" class="browser-default" required>
+                            <option value="" disabled selected>Selecione o endereço de entrega</option>
+                        </select>
+                    </div>
+
+                    <!-- Produtos -->
+                    <div id="produtosList" class="col s12">
+                        <div class="row produto-item">
+                            <div class="input-field col s3">
+                                <select class="sabor-select browser-default" required>
+                                    <option value="" disabled selected>Escolha o sabor</option>
+                                </select>
+                            </div>
+                            <div class="input-field col s2">
+                                <input type="text" class="categoria-display" readonly>
+                                <label>Categoria</label>
+                            </div>
+                            <div class="input-field col s2">
+                                <select class="tamanho-select browser-default" required>
+                                    <option value="" disabled selected>Tamanho</option>
+                                </select>
+                            </div>
+                            <div class="input-field col s1">
+                                <input type="number" class="quantidade" min="1" value="1">
+                                <label>Qtd</label>
+                            </div>
+                            <div class="input-field col s2">
+                                <input type="text" class="preco-unitario" readonly>
+                                <label>Preço Unit. (R$)</label>
+                            </div>
+                            <div class="input-field col s1">
+                                <input type="text" class="subtotal" readonly>
+                                <label>Total (R$)</label>
+                            </div>
+                            <div class="input-field col s1">
+                                <button type="button" class="btn-small waves-effect waves-light red" onclick="removeProduto(this)">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão Adicionar Item -->
+                    <div class="col s12" style="margin-top: 20px;">
+                        <button type="button" class="btn waves-effect green btn-small" onclick="adicionarProdutoRow()">
+                            Adicionar Item
+                            <i class="material-icons right">add</i>
+                        </button>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="col s12 right-align" style="margin-top: 20px;">
+                        <h5><b>Total: R$ <span id="totalPedido">0.00</span></b></h5>
+                    </div>
+
+                    <!-- Botão Confirmar -->
+                    <div class="col s12 center-align" style="margin-top: 20px;">
+                        <button class="btn waves-effect waves-light green btn-small" type="submit" id="confirmarPedido">
+                            Confirmar Pedido
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <h4>Sucesso!</h4>
+            <p>Pedido realizado com sucesso!</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/config.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="/js/materialize.js"></script>
+    <script src="/js/init.js"></script>
+    <script src="/js/pedidos.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+  <title><%= title %></title>
+
+  <!-- CSS  Materialize -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+
+</head>
+
+<body>
+  <!-- Barra de navegação -->
+  <nav class="white" role="navigation">
+    <div class="nav-wrapper container">
+      <a href="/" class="logo-container">
+        <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" class="nav-logo" />
+      </a>
+      <ul class="right hide-on-med-and-down">
+        <li>
+            <a href="/" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">home</i>
+            Home</a>
+        </li>
+        <li>
+            <a href="/produtos" class="nav-item-off nav-item-bright" style="color: #900404">
+              <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
+            Produtos</a>
+        </li>
+        <li>
+            <a href="/clientes" class="black-text nav-item-off nav-item-bright" >
+              <i class="small material-icons" style="vertical-align: middle;">account_box</i>
+            Clientes</a>
+        </li>
+        <li>
+            <a href="/pedidos" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
+            Pedidos</a>
+        </li>
+      </ul>
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+    </div>
+  </nav>
+
+  <!-- Menu Mobile -->
+  <ul id="nav-mobile" class="sidenav">
+    <li><a href="/produtos">Produtos</a></li>
+    <li><a href="/clientes">Clientes</a></li>
+    <li><a href="/pedidos">Pedidos</a></li>
+  </ul>
+
+  <div class="container">
+
+    <div class="row">
+      <form id="registrationForm" class="col s12">
+        <div class="row">
+          
+          <h5><b>Produtos</b></h5>
+          
+          <div class="input-field col s6">
+            <input id="productName" name="sabor" type="text" class="validate">
+            <label for="productName"><span style="color: red;">* </span><b>Sabor:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="productDescription" name="descricao" type="text" class="validate">
+            <label for="productDescription"><b>Descrição:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <label for="productCategory"><b>Categoria:</b></label><br><br>
+            <select name="categoria" id="productCategory" class="browser-default" autocomplete="on">
+                <option value="" disabled selected>Selecione:</option>
+                <option value="Tradicional">Tradicional</option>               
+                <option value="Especial">Especial</option>
+            </select>           
+          </div>
+
+          <div class="input-field col s6">
+            <label for="productSize"><span style="color: red;">* </span><b>Tamanho:</b></label><br><br>
+            <select name="tamanho" id="productSize" class="browser-default" autocomplete="on">
+                <option value="" disabled selected>Selecione:</option>
+                <option value="Pequena">Pequena</option>               
+                <option value="Média">Média</option>
+                <option value="Grande">Grande</option>
+                <option value="Gigante">Gigante</option>
+            </select>           
+          </div>
+
+          <div class="input-field col s6">
+            <input id="productPrice" name="preco" type="number" step="0.01" class="validate">
+            <label for="productPrice"><span style="color: red;">* </span><b>Preço:(R$)</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <button class="btn waves-effect green btn-small" type="button" onclick="saveProduct()">Salvar
+              <i class="material-icons right">send</i>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <table class="striped"> 
+        <thead>
+          <tr>
+              <th>Sabor</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Tamanho</th>
+              <th>Preço (R$)</th>
+              <th>Editar/Deletar</th>
+          </tr>
+        </thead>
+        <tbody id="products-list">
+          <!-- Produtos serão carregados aqui via JavaScript -->
+        </tbody>
+      </table>
+
+      <!-- Modal de Sucesso -->
+      <div id="successModal" class="modal">
+        <div class="modal-content">
+          <h4>Sucesso!</h4>
+          <p>Produto salvo com sucesso!</p>
+        </div>
+        <div class="modal-footer">
+          <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/config.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="/js/materialize.js"></script>
+  <script src="/js/init.js"></script>
+  <script src="/js/produtos.js"></script>
+
+</body>
+</html>

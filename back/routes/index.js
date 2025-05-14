@@ -1,14 +1,8 @@
-var express = require('express');
-var router = express.Router();
-var path = require('path');
+const express = require('express');
+const router = express.Router();
 
-/* GET home page. */
-// Here you load Index.html file
-// The file INDEX.HTML is in Frontend folder
-//
-router.get('/', function(req, res, next) {
-    console.log('You are in index.js file');
-    res.sendFile(path.join(__dirname, '../../front/public/index.html')); 
+router.get('/', (req, res) => {
+    res.json({ message: ' API Backend ativo ' });
 });
 
 module.exports = router;

@@ -1,48 +1,65 @@
-var createError = require('http-errors');
-var path = require('path');
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+// Importações principais
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const cors = require('cors');
 
-var app = express();
+// Inicialização do app
+const app = express();
 
-// IMPORT FROM ROUTES: / ROUTES...
-var indexRouter = require('./routes/index');
-var pizzasRouter = require('./routes/pizzas');
-var clientsRouter = require('./routes/clients');
-var ordersRouter = require('./routes/orders');
+// Configuração do CORS
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 
-// ENDPOINTS DEFINITION ADDRESS TO ROUTERS
-app.use('/', indexRouter);
-app.use('/pizzas', pizzasRouter);
-app.use('/clients', clientsRouter);
-app.use('/orders', ordersRouter);
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
+// Middlewares principais
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../front/public')));
 
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// Middleware de logging aprimorado
+app.use((req, res, next) => {
+    console.log('Teste de tipo de requisição:', {
+        method: req.method,
+        path: req.path,
+        origin: req.headers.origin,
+    });
+    next();
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// Importação das rotas
+const indexRouter = require('./routes/index');
+const produtosRouter = require('./routes/produtos');
+const clientesRouter = require('./routes/clientes');
+const ordensRouter = require('./routes/pedidos');
+const viacepRouter = require('./routes/viacep');
 
-  // render the error page
-  res.status(err.status || 500);
-  res.send('<h2>Pizza Show: Ops! Something went wrong.</h2');
+// Definição das rotas
+app.use('/', indexRouter);
+app.use('/produtos', produtosRouter);
+app.use('/clientes', clientesRouter);
+app.use('/pedidos', ordensRouter);
+app.use('/viacep', viacepRouter);
+
+// Tratamento de erros
+app.use((req, res, next) => {
+    next(createError(404));
+});
+
+app.use((err, req, res, next) => {
+    const error = {
+        status: err.status || 500,
+        message: err.message || 'Erro interno do servidor'
+    };
+    
+    res.status(error.status).json(error);
 });
 
 module.exports = app;
