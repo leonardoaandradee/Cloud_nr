@@ -7,6 +7,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     inicializarComponentes();
     configurarEventListeners();
+    // Inicializar modals
+    var modals = document.querySelectorAll('.modal');
+    M.Modal.init(modals);
 });
 
 // Cache de dados global
@@ -74,7 +77,8 @@ function processarDadosClientes(json) {
             rua: cliente.rua,
             bairro: cliente.bairro,
             cidade: cliente.cidade,
-            estado: cliente.estado
+            estado: cliente.estado,
+            complemento: cliente.complemento
         };
     });
     
@@ -160,6 +164,11 @@ async function exibirDadosCliente(cliente) {
     
     const endereco = formatarEnderecoCompleto(cliente);
     document.getElementById('clienteEndereco').textContent = endereco;
+    if (cliente.complemento) {
+        document.getElementById('clienteComplemento').textContent = cliente.complemento;
+    } else {
+        document.getElementById('clienteComplemento').textContent = 'Sem complemento';
+    }
 
     const enderecoSelect = document.getElementById('endereco');
     enderecoSelect.innerHTML = `
@@ -178,6 +187,8 @@ async function exibirMapa(cliente) {
         const endereco = `${cliente.rua}, ${cliente.bairro}, ${cliente.cidade}, ${cliente.estado}`;
         const coordenadas = await geocodificarEndereco(endereco);
         
+        const mapCard = document.getElementById('mapCard');
+        
         if (!map) {
             map = L.map('map');
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -194,8 +205,21 @@ async function exibirMapa(cliente) {
         marker = L.marker([coordenadas.lat, coordenadas.lon]).addTo(map);
         marker.bindPopup(endereco).openPopup();
         
+        // Garantir que o mapa está visível
+        mapCard.style.display = 'block';
+        document.getElementById('map').style.display = 'block';
+        
     } catch (error) {
         console.error('Erro ao exibir mapa:', error);
+        const mapCard = document.getElementById('mapCard');
+        // Exibir mensagem de erro no card
+        mapCard.innerHTML = `
+            <div class="center-align" style="padding: 20px; height: 100%;">
+                <i class="material-icons medium" style="color: #900404">location_off</i>
+                <p style="color: #666;">Não foi possível apresentar o mapa de localização aproximada do cliente através do CEP informado.</p>
+            </div>
+        `;
+        mapCard.style.display = 'block';
         M.toast({html: 'Erro ao carregar o mapa', classes: 'red'});
     }
 }
@@ -236,6 +260,7 @@ function limparDadosCliente() {
     document.getElementById('clienteNome').textContent = '';
     document.getElementById('clienteTelefone').textContent = '';
     document.getElementById('clienteEndereco').textContent = '';
+    document.getElementById('clienteComplemento').textContent = '';
     document.getElementById('endereco').innerHTML = '<option value="" disabled selected>Selecione o endereço de entrega</option>';
     M.FormSelect.init(document.getElementById('endereco'));
     const mapCard = document.getElementById('mapCard');
@@ -260,22 +285,32 @@ function adicionarProdutoRow() {
     const container = document.getElementById('produtosList');
     const novoProduto = document.querySelector('.produto-item').cloneNode(true);
     
-    // Limpar valores e remover placeholders
+    // Limpar valores dos inputs do novo item
     novoProduto.querySelectorAll('input').forEach(input => {
         if (input.type === 'number') {
             input.value = '1';
         } else {
             input.value = '';
         }
-        input.removeAttribute('placeholder'); // Remove o placeholder das novas linhas
+        // Remover placeholder e label para os novos itens
+        input.removeAttribute('placeholder');
+        const label = input.nextElementSibling;
+        if (label && label.tagName === 'LABEL') {
+            label.remove();
+        }
     });
     
+    // Resetar apenas os selects do novo item
     novoProduto.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
     });
     
     container.appendChild(novoProduto);
-    atualizarSelectsProdutos();
+    
+    // Atualizar apenas os selects do novo item
+    const novoItem = container.lastElementChild;
+    configurarSelectsProduto(novoItem);
+    
     calcularTotal();
 }
 
@@ -319,6 +354,7 @@ async function confirmarPedido(event) {
 
     document.querySelectorAll('.produto-item').forEach(row => {
         const saborSelect = row.querySelector('.sabor-select');
+        const tamanhoSelect = row.querySelector('.tamanho-select');
         const quantidade = parseInt(row.querySelector('.quantidade').value);
         const precoUnitario = parseFloat(row.querySelector('.preco-unitario').value);
         const subtotal = parseFloat(row.querySelector('.subtotal').value);
@@ -332,7 +368,10 @@ async function confirmarPedido(event) {
             produtos_id: parseInt(saborSelect.value),
             quantidade: quantidade,
             preco_unitario: precoUnitario,
-            subtotal: subtotal
+            subtotal: subtotal,
+            // Adicionar informações para o modal
+            sabor: saborSelect.options[saborSelect.selectedIndex].text,
+            tamanho: tamanhoSelect.value
         });
     });
 
@@ -357,12 +396,49 @@ async function confirmarPedido(event) {
 
         if (!response.ok) throw new Error('Erro ao criar pedido');
 
-        M.toast({html: 'Pedido realizado com sucesso!', classes: 'green'});
-        limparFormulario();
+        const result = await response.json();
+        
+        // Exibir modal com detalhes do pedido
+        exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
+        
+        // Limpar formulário apenas após fechar o modal
+        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+        modalInstance.options.onCloseEnd = () => {
+            limparFormulario();
+        };
     } catch (error) {
         console.error('Erro:', error);
         M.toast({html: 'Erro ao criar pedido', classes: 'red'});
     }
+}
+
+function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
+    // Preencher dados do pedido no modal
+    document.getElementById('numeroPedido').textContent = numeroPedido;
+    document.getElementById('modalClienteNome').textContent = cliente.nome;
+    document.getElementById('modalClienteTelefone').textContent = cliente.telefone;
+    document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega;
+    document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
+
+    // Preencher tabela de itens
+    const tbody = document.getElementById('modalItensPedido');
+    tbody.innerHTML = '';
+    
+    itens.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.sabor}</td>
+            <td>${item.tamanho}</td>
+            <td>${item.quantidade}</td>
+            <td>R$ ${item.preco_unitario.toFixed(2)}</td>
+            <td>R$ ${item.subtotal.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Abrir o modal
+    const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+    modalInstance.open();
 }
 
 function limparFormulario() {
@@ -401,52 +477,74 @@ function atualizarSelectsProdutos() {
     }, {});
 
     document.querySelectorAll('.produto-item').forEach(item => {
-        const saborSelect = item.querySelector('.sabor-select');
-        const categoriaInput = item.querySelector('.categoria-display');
-        const tamanhoSelect = item.querySelector('.tamanho-select');
-        const precoInput = item.querySelector('.preco-unitario');
-        const quantidadeInput = item.querySelector('.quantidade');
-        const subtotalInput = item.querySelector('.subtotal');
+        configurarSelectsProduto(item, sabores);
+    });
+}
 
-        // Configurar select de sabores
+// Nova função para configurar os selects de um item específico
+function configurarSelectsProduto(item, saboresCache) {
+    const sabores = saboresCache || produtosData.reduce((acc, produto) => {
+        if (!acc[produto.id]) {
+            acc[produto.id] = {
+                id: produto.id,
+                sabor: produto.sabor,
+                categoria: produto.categoria,
+                tamanhos: []
+            };
+        }
+        acc[produto.id].tamanhos.push({
+            tamanho: produto.tamanho,
+            preco: produto.preco
+        });
+        return acc;
+    }, {});
+
+    const saborSelect = item.querySelector('.sabor-select');
+    const categoriaInput = item.querySelector('.categoria-display');
+    const tamanhoSelect = item.querySelector('.tamanho-select');
+    const quantidadeInput = item.querySelector('.quantidade');
+
+    // Verificar se o select já tem um valor selecionado
+    const saborAtual = saborSelect.value;
+    const tamanhoAtual = tamanhoSelect.value;
+
+    // Configurar select de sabores apenas se não estiver selecionado
+    if (!saborAtual) {
         saborSelect.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' +
             Object.entries(sabores).map(([id, produto]) => 
                 `<option value="${id}" data-categoria="${produto.categoria}">${produto.sabor}</option>`
             ).join('');
+    }
 
-        // Evento de mudança do sabor
-        saborSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const produto = sabores[this.value];
+    // Eventos
+    saborSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const produto = sabores[this.value];
+        
+        if (produto) {
+            categoriaInput.value = selectedOption.dataset.categoria;
             
-            if (produto) {
-                // Atualizar categoria
-                categoriaInput.value = selectedOption.dataset.categoria;
-                
-                // Atualizar opções de tamanho
-                tamanhoSelect.innerHTML = '<option value="" disabled selected>Escolha o tamanho</option>' +
-                    produto.tamanhos.map(t => 
-                        `<option value="${t.tamanho}" data-preco="${t.preco}">
-                            ${t.tamanho} - R$ ${t.preco.toFixed(2)}
-                        </option>`
-                    ).join('');
-                
-                M.FormSelect.init(tamanhoSelect);
-                calcularSubtotal(item);
-            }
-        });
-
-        // Evento de mudança do tamanho
-        tamanhoSelect.addEventListener('change', function() {
+            tamanhoSelect.innerHTML = '<option value="" disabled selected>Escolha o tamanho</option>' +
+                produto.tamanhos.map(t => 
+                    `<option value="${t.tamanho}" data-preco="${t.preco}">
+                        ${t.tamanho} - R$ ${t.preco.toFixed(2)}
+                    </option>`
+                ).join('');
+            
+            M.FormSelect.init(tamanhoSelect);
             calcularSubtotal(item);
-        });
-
-        // Evento de mudança da quantidade
-        quantidadeInput.addEventListener('change', function() {
-            if (this.value < 1) this.value = 1;
-            calcularSubtotal(item);
-        });
+        }
     });
 
-    M.FormSelect.init(document.querySelectorAll('select'));
+    tamanhoSelect.addEventListener('change', function() {
+        calcularSubtotal(item);
+    });
+
+    quantidadeInput.addEventListener('change', function() {
+        if (this.value < 1) this.value = 1;
+        calcularSubtotal(item);
+    });
+
+    M.FormSelect.init(saborSelect);
+    M.FormSelect.init(tamanhoSelect);
 }

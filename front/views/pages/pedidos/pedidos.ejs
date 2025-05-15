@@ -154,6 +154,7 @@
                                     <p><i class="tiny material-icons">person</i> <span id="clienteNome"></span></p>
                                     <p><i class="tiny material-icons">phone</i> <span id="clienteTelefone"></span></p>
                                     <p><i class="tiny material-icons">location_on</i> <span id="clienteEndereco"></span></p>
+                                    <p><i class="tiny material-icons">home</i> <span id="clienteComplemento"></span></p>
                                 </div>
                             </div>
                             <!-- Card do Mapa -->
@@ -171,6 +172,11 @@
                         <select id="endereco" name="endereco_entrega" class="browser-default" required>
                             <option value="" disabled selected>Selecione o endereço de entrega</option>
                         </select>
+                    </div>
+
+                    <!-- Título da Lista de Produtos -->
+                    <div class="col s12">
+                        <h6><b>ITENS DO PEDIDO</b></h6>
                     </div>
 
                     <!-- Produtos -->
@@ -220,7 +226,10 @@
 
                     <!-- Total -->
                     <div class="col s12 right-align" style="margin-top: 20px;">
-                        <h5><b>Total: R$ <span id="totalPedido">0.00</span></b></h5>
+                        <h5>
+                            <i class="small material-icons" style="vertical-align: middle; color: #900404">add_shopping_cart</i>
+                            <b>Total: R$ <span id="totalPedido">0.00</span></b>
+                        </h5>
                     </div>
 
                     <!-- Botão Confirmar -->
@@ -243,6 +252,51 @@
         </div>
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Pedido -->
+    <div id="detalhePedidoModal" class="modal">
+        <div class="modal-content">
+            <div class="center-align">
+                <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" style="height: 80px; margin-bottom: 20px;" />
+            </div>
+            <div class="divider"></div>
+            <h5 class="center-align">Pedido #<span id="numeroPedido"></span></h5>
+            
+            <!-- Dados do Cliente -->
+            <div class="section">
+                <h6><b>Dados do Cliente</b></h6>
+                <p><b>Nome:</b> <span id="modalClienteNome"></span></p>
+                <p><b>Telefone:</b> <span id="modalClienteTelefone"></span></p>
+                <p><b>Endereço de Entrega:</b> <span id="modalClienteEndereco"></span></p>
+            </div>
+            
+            <!-- Itens do Pedido -->
+            <div class="section">
+                <h6><b>Itens do Pedido</b></h6>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Tamanho</th>
+                            <th>Qtd</th>
+                            <th>Preço Unit.</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalItensPedido">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total -->
+            <div class="section right-align">
+                <h5><b>Total: R$ <span id="modalTotalPedido"></span></b></h5>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
         </div>
     </div>
 
