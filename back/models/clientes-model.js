@@ -101,6 +101,34 @@ function getClienteById(id, res) {
     );
 }
 
+// Busca um cliente específico por telefone
+function getClienteByTelefone(telefone, res) {
+    clientesDB.get(
+        "SELECT * FROM clientes WHERE telefone = ?",
+        [telefone],
+        (err, row) => {
+            if (err) {
+                console.error("Erro ao buscar cliente:", err.message);
+                return res.status(500).json({
+                    sucesso: false,
+                    erro: 'Erro ao buscar cliente',
+                    detalhes: err.message
+                });
+            }
+            if (!row) {
+                return res.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Cliente não encontrado'
+                });
+            }
+            res.status(200).json({
+                sucesso: true,
+                dados: row
+            });
+        }
+    );
+}
+
 // Atualiza um cliente
 function updateCliente(id, cliente, res) {
     clientesDB.run(
@@ -139,5 +167,6 @@ module.exports = {
     createCliente,
     deleteCliente,
     getClienteById,
+    getClienteByTelefone,
     updateCliente
 };

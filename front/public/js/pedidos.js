@@ -1,51 +1,90 @@
+/**
+ * Gerenciamento do formulário de pedidos
+ * Inclui funcionalidades de busca de clientes, produtos e criação de pedidos
+ */
+
+// Inicialização do documento
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializa componentes do Materialize
-    M.AutoComplete.init(document.querySelectorAll('.autocomplete'));
-    M.FormSelect.init(document.querySelectorAll('select'));
-
-    // Carrega dados iniciais
-    carregarClientes();
-    carregarProdutos();
-
-    // Event listeners
-    document.getElementById('phoneSearch').addEventListener('change', buscarCliente);
-    document.getElementById('addProduto').addEventListener('click', adicionarProdutoRow);
-    document.getElementById('orderForm').addEventListener('submit', confirmarPedido);
+    inicializarComponentes();
+    configurarEventListeners();
 });
 
-// Cache de dados
+// Cache de dados global
 let clientesData = {};
+let clientesIds = [];
 let produtosData = {};
+let map = null;
+let marker = null;
 
-// Funções de carregamento inicial
+/**
+ * Funções de inicialização
+ */
+function inicializarComponentes() {
+    M.FormSelect.init(document.querySelectorAll('select'));
+    carregarClientes();
+    carregarProdutos();
+}
+
+function configurarEventListeners() {
+    const phoneInput = document.getElementById('phoneSearch');
+    phoneInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarCliente();
+        }
+    });
+    
+    document.getElementById('orderForm').addEventListener('submit', confirmarPedido);
+}
+
+/**
+ * Funções de carregamento de dados
+ */
 async function carregarClientes() {
     try {
-        const response = await fetch(`${API_URL}/clientes`);
-        const data = await response.json();
-        clientesData = data.dados.reduce((acc, cliente) => {
-            acc[cliente.telefone] = cliente;
-            return acc;
-        }, {});
-
-        // Prepara dados para autocomplete
-        let autoCompleteData = {};
-        data.dados.forEach(cliente => {
-            autoCompleteData[cliente.telefone] = null;
-        });
-
-        const elem = document.querySelector('.autocomplete');
-        M.Autocomplete.init(elem, {
-            data: autoCompleteData,
-            onAutocomplete: buscarCliente
-        });
+        console.log('Iniciando carregamento de clientes...');
+        const response = await fetch(`${CONFIG.API_URL}/clientes`);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) throw new Error('Erro ao carregar clientes');
+        
+        const json = await response.json();
+        console.log('Dados recebidos da API:', json);
+        
+        processarDadosClientes(json);
     } catch (error) {
         console.error('Erro ao carregar clientes:', error);
+        M.toast({html: 'Erro ao carregar clientes: ' + error.message, classes: 'red'});
     }
+}
+
+function processarDadosClientes(json) {
+    const { dados } = json;
+    if (!Array.isArray(dados)) throw new Error('Formato de dados inválido');
+    
+    clientesData = {};
+    clientesIds = [];
+    
+    dados.forEach(cliente => {
+        clientesIds.push(cliente.id);
+        clientesData[cliente.id] = {
+            id: cliente.id,
+            nome: cliente.nome,
+            telefone: cliente.telefone,
+            rua: cliente.rua,
+            bairro: cliente.bairro,
+            cidade: cliente.cidade,
+            estado: cliente.estado
+        };
+    });
+    
+    console.log('Cache de clientes atualizado:', clientesData);
+    console.log('Total de clientes carregados:', clientesIds.length);
 }
 
 async function carregarProdutos() {
     try {
-        const response = await fetch(`${API_URL}/produtos`);
+        const response = await fetch(`${CONFIG.API_URL}/produtos`);
         const data = await response.json();
         produtosData = data.dados;
         atualizarSelectsProdutos();
@@ -54,33 +93,141 @@ async function carregarProdutos() {
     }
 }
 
-// Funções de manipulação do formulário
+/**
+ * Funções de manipulação de pedidos
+ */
 async function buscarCliente() {
-    const telefone = document.getElementById('phoneSearch').value;
-    const cliente = clientesData[telefone];
-    const clienteInfo = document.getElementById('clienteInfo');
+    const telefone = document.getElementById('phoneSearch').value.trim();
+    console.log('Buscando cliente com telefone:', telefone);
     
-    if (cliente) {
-        clienteInfo.style.display = 'block';
-        document.getElementById('clienteNome').textContent = `Nome: ${cliente.nome}`;
-        document.getElementById('clienteTelefone').textContent = `Telefone: ${cliente.telefone}`;
-        document.getElementById('clienteEndereco').textContent = 
-            `Endereço: ${cliente.rua}, ${cliente.bairro}, ${cliente.cidade} - ${cliente.estado}`;
-
-        // Atualiza select de endereços
-        const enderecoSelect = document.getElementById('endereco');
-        const enderecoCompleto = `${cliente.rua}, ${cliente.bairro}, ${cliente.cidade} - ${cliente.estado}`;
-        enderecoSelect.innerHTML = `
-            <option value="" disabled>Selecione o endereço</option>
-            <option value="${enderecoCompleto}" selected>${enderecoCompleto}</option>
-        `;
-        
-        M.FormSelect.init(enderecoSelect);
-        M.toast({html: 'Cliente encontrado!', classes: 'green'});
-    } else {
-        limparDadosCliente();
-        M.toast({html: 'Cliente não encontrado', classes: 'red'});
+    if (!telefone) {
+        M.toast({html: 'Por favor, insira um telefone', classes: 'red'});
+        return;
     }
+
+    try {
+        const clienteEncontrado = Object.values(clientesData).find(
+            cliente => cliente.telefone === telefone
+        );
+
+        if (!clienteEncontrado) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        await buscarDadosAtualizadosCliente(clienteEncontrado);
+    } catch (error) {
+        tratarErrosBuscaCliente(error);
+    }
+}
+
+async function buscarDadosAtualizadosCliente(clienteEncontrado) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/clientes/${clienteEncontrado.id}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar dados do cliente');
+        }
+
+        const json = await response.json();
+        
+        if (!json.sucesso || !json.dados) {
+            throw new Error('Dados do cliente não encontrados');
+        }
+
+        clientesData[clienteEncontrado.id] = json.dados;
+        exibirDadosCliente(json.dados);
+    } catch (error) {
+        console.error('Erro ao buscar dados atualizados do cliente:', error);
+        limparDadosCliente();
+        M.toast({html: error.message, classes: 'red'});
+    }
+}
+
+function tratarErrosBuscaCliente(error) {
+    console.error('Erro ao buscar cliente:', error);
+    limparDadosCliente();
+    M.toast({html: error.message, classes: 'red'});
+}
+
+async function exibirDadosCliente(cliente) {
+    const clienteInfo = document.getElementById('clienteInfo');
+    const mapCard = document.getElementById('mapCard');
+    clienteInfo.style.display = 'block';
+    mapCard.style.display = 'block';
+    
+    document.getElementById('clienteNome').textContent = cliente.nome;
+    document.getElementById('clienteTelefone').textContent = cliente.telefone;
+    
+    const endereco = formatarEnderecoCompleto(cliente);
+    document.getElementById('clienteEndereco').textContent = endereco;
+
+    const enderecoSelect = document.getElementById('endereco');
+    enderecoSelect.innerHTML = `
+        <option value="${endereco}" selected>${endereco}</option>
+    `;
+    M.FormSelect.init(enderecoSelect);
+    
+    M.toast({html: 'Cliente encontrado!', classes: 'green'});
+
+    // Geocodificar e exibir mapa
+    await exibirMapa(cliente);
+}
+
+async function exibirMapa(cliente) {
+    try {
+        const endereco = `${cliente.rua}, ${cliente.bairro}, ${cliente.cidade}, ${cliente.estado}`;
+        const coordenadas = await geocodificarEndereco(endereco);
+        
+        if (!map) {
+            map = L.map('map');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        map.setView([coordenadas.lat, coordenadas.lon], 16);
+
+        if (marker) {
+            marker.remove();
+        }
+        
+        marker = L.marker([coordenadas.lat, coordenadas.lon]).addTo(map);
+        marker.bindPopup(endereco).openPopup();
+        
+    } catch (error) {
+        console.error('Erro ao exibir mapa:', error);
+        M.toast({html: 'Erro ao carregar o mapa', classes: 'red'});
+    }
+}
+
+async function geocodificarEndereco(endereco) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+            return {
+                lat: parseFloat(data[0].lat),
+                lon: parseFloat(data[0].lon)
+            };
+        }
+        throw new Error('Endereço não encontrado');
+    } catch (error) {
+        throw new Error('Erro na geocodificação: ' + error.message);
+    }
+}
+
+function formatarEnderecoCompleto(cliente) {
+    const componentes = [];
+    
+    if (cliente.rua) componentes.push(cliente.rua);
+    if (cliente.bairro) componentes.push(cliente.bairro);
+    if (cliente.cidade) componentes.push(cliente.cidade);
+    if (cliente.estado) componentes.push(cliente.estado);
+    
+    return componentes.length > 0 ? componentes.join(', ') : 'Endereço não disponível';
 }
 
 function limparDadosCliente() {
@@ -89,8 +236,15 @@ function limparDadosCliente() {
     document.getElementById('clienteNome').textContent = '';
     document.getElementById('clienteTelefone').textContent = '';
     document.getElementById('clienteEndereco').textContent = '';
-    document.getElementById('endereco').innerHTML = 
-        '<option value="" disabled selected>Selecione o endereço de entrega</option>';
+    document.getElementById('endereco').innerHTML = '<option value="" disabled selected>Selecione o endereço de entrega</option>';
+    M.FormSelect.init(document.getElementById('endereco'));
+    const mapCard = document.getElementById('mapCard');
+    mapCard.style.display = 'none';
+    if (map) {
+        map.remove();
+        map = null;
+        marker = null;
+    }
 }
 
 function removeProduto(element) {
@@ -98,12 +252,10 @@ function removeProduto(element) {
     calcularTotal();
 }
 
-// Atualiza função adicionarProdutoRow para usar o novo layout
 function adicionarProdutoRow() {
     const container = document.getElementById('produtosList');
     const novoProduto = document.querySelector('.produto-item').cloneNode(true);
     
-    // Limpa valores
     novoProduto.querySelectorAll('input').forEach(input => input.value = '');
     novoProduto.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
@@ -112,13 +264,11 @@ function adicionarProdutoRow() {
     
     container.appendChild(novoProduto);
     
-    // Adiciona event listeners
     novoProduto.querySelector('.quantidade').addEventListener('change', calcularSubtotal);
     novoProduto.querySelector('.tamanho-select').addEventListener('change', calcularSubtotal);
     novoProduto.querySelector('.sabor-select').addEventListener('change', calcularSubtotal);
 }
 
-// Atualiza calcularSubtotal para considerar o preço correto
 function calcularSubtotal(event) {
     const row = event.target.closest('.produto-item');
     const quantidade = parseInt(row.querySelector('.quantidade').value) || 0;
@@ -150,10 +300,12 @@ async function confirmarPedido(event) {
     event.preventDefault();
     
     const telefone = document.getElementById('phoneSearch').value;
-    const cliente = clientesData[telefone];
+    const clienteEncontrado = Object.values(clientesData).find(
+        cliente => cliente.telefone === telefone
+    );
     const endereco = document.getElementById('endereco').value;
     
-    if (!cliente || !endereco) {
+    if (!clienteEncontrado || !endereco) {
         M.toast({html: 'Por favor, selecione um cliente e endereço de entrega', classes: 'red'});
         return;
     }
@@ -186,14 +338,14 @@ async function confirmarPedido(event) {
     }
 
     const pedido = {
-        clientes_id: cliente.id,
+        clientes_id: clienteEncontrado.id,
         itens: itens,
         preco_total: parseFloat(document.getElementById('totalPedido').textContent),
         endereco_entrega: endereco
     };
 
     try {
-        const response = await fetch(`${API_URL}/pedidos`, {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
@@ -248,13 +400,11 @@ function atualizarSelectsProdutos() {
         const categoriaInput = item.querySelector('.categoria-display');
         const tamanhoSelect = item.querySelector('.tamanho-select');
 
-        // Preenche sabores
         saborSelect.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' +
             Object.entries(sabores).map(([id, produto]) => 
                 `<option value="${id}">${produto.sabor}</option>`
             ).join('');
 
-        // Event listener para sabor
         saborSelect.addEventListener('change', function() {
             const produto = sabores[this.value];
             if (produto) {
@@ -269,7 +419,6 @@ function atualizarSelectsProdutos() {
             }
         });
 
-        // Event listener para tamanho
         tamanhoSelect.addEventListener('change', function() {
             const option = this.selectedOptions[0];
             if (option) {
