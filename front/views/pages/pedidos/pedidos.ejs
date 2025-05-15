@@ -8,6 +8,85 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
     <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <!-- Adicionar CSS do Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #mapCard {
+            height: 250px;
+            margin-top: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        /* Estilos para os itens do pedido */
+        .produto-item {
+            margin-bottom: 5px !important;
+            padding: 5px 0 !important;
+        }
+        .produto-item .input-field {
+            margin-top: 0;
+            margin-bottom: 0;
+            position: relative;
+        }
+        .produto-item .input-field input {
+            margin-bottom: 0;
+            height: 2rem;
+            padding-left: 5px;
+            background-color: white !important;
+        }
+        .produto-item .input-field label {
+            position: absolute;
+            top: -15px;
+            font-size: 0.8rem;
+            color: #666;
+            background: transparent;
+            transform: translateY(-14px); /* Mantém label sempre elevado */
+        }
+        /* Remove a transformação baseada no placeholder */
+        .produto-item .input-field input:focus + label,
+        .produto-item .input-field input:not(:placeholder-shown) + label {
+            transform: translateY(-14px);
+            font-size: 0.8rem;
+        }
+        .produto-item .browser-default {
+            height: 2rem;
+            margin-top: 5px;
+        }
+        .produto-item .btn-small {
+            padding: 0 10px;
+            height: 2rem;
+            line-height: 2rem;
+            margin-top: 5px;
+        }
+        .produto-item .btn-small i {
+            font-size: 1.2rem;
+            line-height: 2rem;
+        }
+        .produto-item .categoria-display,
+        .produto-item .preco-unitario,
+        .produto-item .subtotal {
+            color: #000 !important;
+            border: 1px solid #ddd !important;
+            border-radius: 2px;
+            padding: 0 5px !important;
+            box-sizing: border-box;
+            background-color: #f5f5f5 !important;
+        }
+        .quantidade {
+            text-align: center;
+        }
+        #produtosList {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #produtosList .row:first-child {
+            margin-bottom: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -57,19 +136,32 @@
                     
                     <h5><b>Pedidos</b></h5>
                     
-                    <!-- Cliente -->
-                    <div class="input-field col s12 m6">
-                        <input type="text" id="phoneSearch" class="autocomplete">
-                        <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
-                    </div>
+                    <!-- Container para telefone e info do cliente -->
+                    <div class="col s12">
+                        <!-- Campo de telefone -->
+                        <div class="input-field col s12">
+                            <input type="text" id="phoneSearch" class="validate">
+                            <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
+                            <small class="helper-text">Digite o telefone e pressione Enter</small>
+                        </div>
 
-                    <!-- Info do Cliente -->
-                    <div class="col s12 m6">
-                        <div id="clienteInfo" class="card-panel grey lighten-4" style="display: none;">
-                            <h6>Dados do Cliente</h6>
-                            <p id="clienteNome"></p>
-                            <p id="clienteTelefone"></p>
-                            <p id="clienteEndereco"></p>
+                        <!-- Container para os cards (info cliente e mapa) -->
+                        <div class="row">
+                            <!-- Info do Cliente -->
+                            <div class="col s6">
+                                <div id="clienteInfo" class="card-panel grey lighten-4" style="display: none; margin-top: 0; height: 250px;">
+                                    <h6><b>Dados do Cliente</b></h6>
+                                    <p><i class="tiny material-icons">person</i> <span id="clienteNome"></span></p>
+                                    <p><i class="tiny material-icons">phone</i> <span id="clienteTelefone"></span></p>
+                                    <p><i class="tiny material-icons">location_on</i> <span id="clienteEndereco"></span></p>
+                                </div>
+                            </div>
+                            <!-- Card do Mapa -->
+                            <div class="col s6">
+                                <div id="mapCard" class="card-panel" style="display: none;">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -90,7 +182,7 @@
                                 </select>
                             </div>
                             <div class="input-field col s2">
-                                <input type="text" class="categoria-display" readonly>
+                                <input type="text" class="categoria-display" readonly placeholder=" ">
                                 <label>Categoria</label>
                             </div>
                             <div class="input-field col s2">
@@ -99,15 +191,15 @@
                                 </select>
                             </div>
                             <div class="input-field col s1">
-                                <input type="number" class="quantidade" min="1" value="1">
+                                <input type="number" class="quantidade" min="1" value="1" placeholder=" ">
                                 <label>Qtd</label>
                             </div>
                             <div class="input-field col s2">
-                                <input type="text" class="preco-unitario" readonly>
+                                <input type="text" class="preco-unitario" readonly placeholder=" ">
                                 <label>Preço Unit. (R$)</label>
                             </div>
                             <div class="input-field col s1">
-                                <input type="text" class="subtotal" readonly>
+                                <input type="text" class="subtotal" readonly placeholder=" ">
                                 <label>Total (R$)</label>
                             </div>
                             <div class="input-field col s1">
@@ -157,6 +249,7 @@
     <!-- Scripts -->
     <script src="/js/config.js"></script>
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/js/materialize.js"></script>
     <script src="/js/init.js"></script>
     <script src="/js/pedidos.js"></script>

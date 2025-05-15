@@ -2,7 +2,11 @@ const express = require('express');
 const router = express.Router();
 const clientesModel = require('../models/clientes-model.js');
 
-// GET
+/**
+ * Rotas para gerenciamento de clientes
+ */
+
+// Busca todos os clientes
 router.get('/', (req, res) => {
     try {
         clientesModel.getClientes(res);
@@ -11,18 +15,7 @@ router.get('/', (req, res) => {
     }
 });
 
-// POST
-router.post('/', (req, res) => {
-    try {
-        const { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento } = req.body;
-        const newCliente = { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento };
-        clientesModel.createCliente(newCliente, res);
-    } catch (error) {
-        res.status(500).json({ erro: 'Erro ao criar cliente', detalhes: error.message });
-    }
-});
-
-// GET by ID
+// Busca cliente por ID específico
 router.get('/:id', (req, res) => {
     try {
         clientesModel.getClienteById(req.params.id, res);
@@ -34,7 +27,37 @@ router.get('/:id', (req, res) => {
     }
 });
 
-// PUT by ID
+// Busca cliente por telefone
+router.get('/buscar', (req, res) => {
+    try {
+        const telefone = req.query.telefone;
+        if (!telefone) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: 'Telefone não fornecido'
+            });
+        }
+        clientesModel.getClienteByTelefone(telefone, res);
+    } catch (error) {
+        res.status(500).json({ 
+            erro: 'Erro ao buscar cliente por telefone', 
+            detalhes: error.message 
+        });
+    }
+});
+
+// Cria um novo cliente
+router.post('/', (req, res) => {
+    try {
+        const { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento } = req.body;
+        const newCliente = { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento };
+        clientesModel.createCliente(newCliente, res);
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao criar cliente', detalhes: error.message });
+    }
+});
+
+// Atualiza cliente por ID
 router.put('/:id', (req, res) => {
     try {
         const { nome, email, telefone, CEP, rua, bairro, cidade, estado, complemento } = req.body;
@@ -48,7 +71,7 @@ router.put('/:id', (req, res) => {
     }
 });
 
-// DELETE
+// Exclui cliente por ID
 router.delete('/:id', (req, res) => {
     try {
         clientesModel.deleteCliente(req.params.id, res);
