@@ -248,51 +248,55 @@ function limparDadosCliente() {
 }
 
 function removeProduto(element) {
-    element.closest('.produto-item').remove();
-    calcularTotal();
+    if (document.querySelectorAll('.produto-item').length > 1) {
+        element.closest('.produto-item').remove();
+        calcularTotal();
+    } else {
+        M.toast({html: 'O pedido deve ter pelo menos um item', classes: 'red'});
+    }
 }
 
 function adicionarProdutoRow() {
     const container = document.getElementById('produtosList');
     const novoProduto = document.querySelector('.produto-item').cloneNode(true);
     
-    novoProduto.querySelectorAll('input').forEach(input => input.value = '');
+    // Limpar valores e remover placeholders
+    novoProduto.querySelectorAll('input').forEach(input => {
+        if (input.type === 'number') {
+            input.value = '1';
+        } else {
+            input.value = '';
+        }
+        input.removeAttribute('placeholder'); // Remove o placeholder das novas linhas
+    });
+    
     novoProduto.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
-        M.FormSelect.init(select);
     });
     
     container.appendChild(novoProduto);
-    
-    novoProduto.querySelector('.quantidade').addEventListener('change', calcularSubtotal);
-    novoProduto.querySelector('.tamanho-select').addEventListener('change', calcularSubtotal);
-    novoProduto.querySelector('.sabor-select').addEventListener('change', calcularSubtotal);
+    atualizarSelectsProdutos();
+    calcularTotal();
 }
 
-function calcularSubtotal(event) {
-    const row = event.target.closest('.produto-item');
+function calcularSubtotal(row) {
     const quantidade = parseInt(row.querySelector('.quantidade').value) || 0;
-    const saborSelect = row.querySelector('.sabor-select');
     const tamanhoSelect = row.querySelector('.tamanho-select');
+    const precoUnitario = row.querySelector('.preco-unitario');
+    const subtotalInput = row.querySelector('.subtotal');
     
-    if (saborSelect.value && tamanhoSelect.value) {
-        const produto = produtosData.find(p => 
-            p.id === parseInt(saborSelect.value) && p.tamanho === tamanhoSelect.value
-        );
-        
-        if (produto) {
-            const subtotal = produto.preco * quantidade;
-            row.querySelector('.preco-unitario').value = produto.preco.toFixed(2);
-            row.querySelector('.subtotal').value = subtotal.toFixed(2);
-            calcularTotal();
-        }
+    if (tamanhoSelect.value) {
+        const preco = parseFloat(tamanhoSelect.selectedOptions[0].dataset.preco);
+        precoUnitario.value = preco.toFixed(2);
+        const subtotal = preco * quantidade;
+        subtotalInput.value = subtotal.toFixed(2);
+        calcularTotal();
     }
 }
 
 function calcularTotal() {
-    const subtotais = [...document.querySelectorAll('.subtotal')]
-        .map(input => parseFloat(input.value) || 0);
-    const total = subtotais.reduce((acc, curr) => acc + curr, 0);
+    const total = Array.from(document.querySelectorAll('.subtotal'))
+        .reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
     document.getElementById('totalPedido').textContent = total.toFixed(2);
 }
 
@@ -383,6 +387,7 @@ function atualizarSelectsProdutos() {
     const sabores = produtosData.reduce((acc, produto) => {
         if (!acc[produto.id]) {
             acc[produto.id] = {
+                id: produto.id,
                 sabor: produto.sabor,
                 categoria: produto.categoria,
                 tamanhos: []
@@ -399,34 +404,47 @@ function atualizarSelectsProdutos() {
         const saborSelect = item.querySelector('.sabor-select');
         const categoriaInput = item.querySelector('.categoria-display');
         const tamanhoSelect = item.querySelector('.tamanho-select');
+        const precoInput = item.querySelector('.preco-unitario');
+        const quantidadeInput = item.querySelector('.quantidade');
+        const subtotalInput = item.querySelector('.subtotal');
 
+        // Configurar select de sabores
         saborSelect.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' +
             Object.entries(sabores).map(([id, produto]) => 
-                `<option value="${id}">${produto.sabor}</option>`
+                `<option value="${id}" data-categoria="${produto.categoria}">${produto.sabor}</option>`
             ).join('');
 
+        // Evento de mudança do sabor
         saborSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
             const produto = sabores[this.value];
+            
             if (produto) {
-                categoriaInput.value = produto.categoria || '';
+                // Atualizar categoria
+                categoriaInput.value = selectedOption.dataset.categoria;
+                
+                // Atualizar opções de tamanho
                 tamanhoSelect.innerHTML = '<option value="" disabled selected>Escolha o tamanho</option>' +
                     produto.tamanhos.map(t => 
                         `<option value="${t.tamanho}" data-preco="${t.preco}">
                             ${t.tamanho} - R$ ${t.preco.toFixed(2)}
                         </option>`
                     ).join('');
+                
                 M.FormSelect.init(tamanhoSelect);
+                calcularSubtotal(item);
             }
         });
 
+        // Evento de mudança do tamanho
         tamanhoSelect.addEventListener('change', function() {
-            const option = this.selectedOptions[0];
-            if (option) {
-                const preco = parseFloat(option.dataset.preco);
-                const row = this.closest('.produto-item');
-                row.querySelector('.preco-unitario').value = preco.toFixed(2);
-                calcularSubtotal(row);
-            }
+            calcularSubtotal(item);
+        });
+
+        // Evento de mudança da quantidade
+        quantidadeInput.addEventListener('change', function() {
+            if (this.value < 1) this.value = 1;
+            calcularSubtotal(item);
         });
     });
 
