@@ -31,10 +31,12 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - A aplicação FRONTEND usará a porta 3000 e deverá estar em visibilidade pública.
 - Insira os dados de endereço de sua API Backend na variável contida em /front/public/js/config.js
 
-#### Bibliotecas:
+#### Bibliotecas / Recursos:
 - AXIOS
 - EJS
 - SQLITE3
+- API Via CEP
+- API Open Street Map
 
 ## 🔗 Estrutura de Comunicação:
 A aplicação é dividida entre cliente e servidor:
