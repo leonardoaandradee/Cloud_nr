@@ -401,10 +401,10 @@ async function confirmarPedido(event) {
         // Exibir modal com detalhes do pedido
         exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        // Limpar formulário apenas após fechar o modal
+        // Remover manipulador de evento anterior para não limpar o formulário
         const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
         modalInstance.options.onCloseEnd = () => {
-            limparFormulario();
+            window.location.href = '/';  // Redirecionar para home ao fechar
         };
     } catch (error) {
         console.error('Erro:', error);
@@ -413,11 +413,25 @@ async function confirmarPedido(event) {
 }
 
 function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
+    // Formatar data e hora atual
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString('pt-BR', { 
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+    });
+    const horaFormatada = agora.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
     // Preencher dados do pedido no modal
     document.getElementById('numeroPedido').textContent = numeroPedido;
+    document.getElementById('modalDataHora').textContent = `${dataFormatada} ${horaFormatada}`;
     document.getElementById('modalClienteNome').textContent = cliente.nome;
     document.getElementById('modalClienteTelefone').textContent = cliente.telefone;
     document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega;
+    document.getElementById('modalClienteComplemento').textContent = cliente.complemento || 'Sem complemento';
     document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
 
     // Preencher tabela de itens
@@ -439,6 +453,73 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
     // Abrir o modal
     const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
     modalInstance.open();
+}
+
+// Nova função para limpeza completa do formulário
+function limparFormularioCompleto() {
+    // Limpar campo de telefone
+    document.getElementById('phoneSearch').value = '';
+    
+    // Limpar dados do cliente
+    limparDadosCliente();
+    
+    // Limpar itens do pedido
+    const produtos = document.getElementById('produtosList');
+    while (produtos.children.length > 1) {
+        produtos.removeChild(produtos.lastChild);
+    }
+    
+    // Resetar primeiro item
+    const primeiroItem = produtos.firstChild;
+    if (primeiroItem) {
+        // Limpar selects
+        primeiroItem.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+            M.FormSelect.init(select);
+        });
+
+        // Limpar inputs
+        primeiroItem.querySelectorAll('input').forEach(input => {
+            if (input.type === 'number') {
+                input.value = '1';
+            } else {
+                input.value = '';
+            }
+            // Manter apenas os labels do primeiro item
+            if (!input.readOnly) {
+                const label = input.nextElementSibling;
+                if (label && label.tagName === 'LABEL') {
+                    label.style.transform = 'translateY(-14px)'; // Resetar posição do label
+                }
+            }
+        });
+
+        // Limpar categoria, preço unitário e subtotal
+        primeiroItem.querySelector('.categoria-display').value = '';
+        primeiroItem.querySelector('.preco-unitario').value = '';
+        primeiroItem.querySelector('.subtotal').value = '';
+    }
+
+    // Limpar total
+    document.getElementById('totalPedido').textContent = '0.00';
+
+    // Reset do formulário
+    document.getElementById('orderForm').reset();
+    
+    // Fechar mapa se estiver aberto
+    const mapCard = document.getElementById('mapCard');
+    mapCard.style.display = 'none';
+    if (map) {
+        map.remove();
+        map = null;
+        marker = null;
+    }
+
+    // Esconder card de informações do cliente
+    document.getElementById('clienteInfo').style.display = 'none';
+
+    // Recarregar os selects de produtos para garantir estado inicial
+    atualizarSelectsProdutos();
 }
 
 function limparFormulario() {
