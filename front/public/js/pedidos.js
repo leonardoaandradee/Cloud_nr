@@ -26,6 +26,7 @@ function inicializarComponentes() {
     M.FormSelect.init(document.querySelectorAll('select'));
     carregarClientes();
     carregarProdutos();
+    carregarPedidos();
 }
 
 function configurarEventListeners() {
@@ -94,6 +95,150 @@ async function carregarProdutos() {
         atualizarSelectsProdutos();
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+    }
+}
+
+async function carregarPedidos() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos`);
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error('Erro ao carregar pedidos');
+        }
+
+        const tbody = document.getElementById('pedidos-list');
+        tbody.innerHTML = '';
+
+        data.dados.forEach(pedido => {
+            const row = document.createElement('tr');
+            const dataFormatada = pedido.data_pedido 
+                ? new Date(pedido.data_pedido).toLocaleString('pt-BR')
+                : 'Data não disponível';
+            const status = pedido.status || 'Pendente';
+            const telefone = pedido.cliente_telefone || 'Não informado';
+
+            row.innerHTML = `
+                <td>
+                    <a href="#!" onclick="mostrarDetalhesPedido(${pedido.id})" class="blue-text">
+                        #${pedido.id}
+                    </a>
+                </td>
+                <td>${dataFormatada}</td>
+                <td>
+                    ${pedido.cliente_nome}<br>
+                    <small>${telefone}</small>
+                </td>
+                <td>
+                    <select class="browser-default" onchange="atualizarStatus(${pedido.id}, this.value)">
+                        <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                        <option value="Em Preparo" ${status === 'Em Preparo' ? 'selected' : ''}>Em Preparo</option>
+                        <option value="Saiu para Entrega" ${status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
+                        <option value="Entregue" ${status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                        <option value="Cancelado" ${status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn-small waves-effect waves-light red" onclick="deletarPedido(${pedido.id})">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        M.toast({html: 'Erro ao carregar pedidos', classes: 'red'});
+    }
+}
+
+async function mostrarDetalhesPedido(pedidoId) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
+        const data = await response.json();
+        
+        if (!data.sucesso) throw new Error('Erro ao carregar dados do pedido');
+
+        const pedido = data.dados;
+        console.log('Dados do pedido:', pedido); // Debug
+
+        // Formatar data e hora
+        const dataHora = new Date(pedido.data_pedido || pedido.data_criacao).toLocaleString('pt-BR');
+
+        // Preencher dados no modal
+        document.getElementById('numeroPedido').textContent = pedido.id;
+        document.getElementById('modalDataHora').textContent = dataHora;
+        document.getElementById('modalClienteNome').textContent = pedido.cliente_nome || 'N/A';
+        document.getElementById('modalClienteTelefone').textContent = pedido.cliente_telefone || 'N/A';
+        document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega || 'N/A';
+        document.getElementById('modalClienteComplemento').textContent = pedido.complemento || 'Sem complemento';
+        document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
+
+        // Preencher tabela de itens
+        const tbody = document.getElementById('modalItensPedido');
+        tbody.innerHTML = '';
+        
+        if (Array.isArray(pedido.itens)) {
+            pedido.itens.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.sabor || 'N/A'}</td>
+                    <td>${item.tamanho || 'N/A'}</td>
+                    <td>${item.quantidade}</td>
+                    <td>R$ ${Number(item.preco_unitario).toFixed(2)}</td>
+                    <td>R$ ${Number(item.subtotal).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Abrir o modal
+        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+        modalInstance.open();
+    } catch (error) {
+        console.error('Erro ao carregar detalhes do pedido:', error);
+        M.toast({html: 'Erro ao carregar detalhes do pedido', classes: 'red'});
+    }
+}
+
+async function atualizarStatus(pedidoId, novoStatus) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || 'Erro ao atualizar status');
+        }
+        
+        M.toast({html: 'Status atualizado com sucesso!', classes: 'green'});
+        // Recarregar a lista de pedidos para atualizar a visualização
+        await carregarPedidos();
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        M.toast({html: error.message || 'Erro ao atualizar status', classes: 'red'});
+    }
+}
+
+async function deletarPedido(pedidoId) {
+    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Erro ao deletar pedido');
+
+        M.toast({html: 'Pedido deletado com sucesso!', classes: 'green'});
+        carregarPedidos(); // Recarrega a lista
+    } catch (error) {
+        console.error('Erro ao deletar pedido:', error);
+        M.toast({html: 'Erro ao deletar pedido', classes: 'red'});
     }
 }
 
@@ -406,6 +551,8 @@ async function confirmarPedido(event) {
         modalInstance.options.onCloseEnd = () => {
             window.location.href = '/';  // Redirecionar para home ao fechar
         };
+
+        await carregarPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
         M.toast({html: 'Erro ao criar pedido', classes: 'red'});
