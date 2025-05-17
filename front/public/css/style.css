@@ -10,11 +10,26 @@
 body {
   background-image: url('../components/images/background_06.png');
   background-size: cover;         /* Ajusta a imagem para cobrir toda a tela */
-  background-repeat: no-repeat;   /* Não repete a imagem */
+  background-repeat: repeat;   /* aqui repete a imagem */
   background-position: center;    /* Centraliza a imagem */
   height: 100vh;                  /* Garante altura total da viewport */
   margin: 0;
   font-family: Arial, sans-serif;
+}
+
+/* Alteração global para labels */
+label {
+    color: #000 !important;
+}
+
+/* Para labels do Materialize */
+.input-field label {
+    color: #000 !important;
+}
+
+/* Para labels quando o campo está focado */
+.input-field label.active {
+    color: #000 !important;
 }
 
 /* Componentes de navegação */

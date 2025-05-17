@@ -42,14 +42,20 @@ router.get('/:id', (req, res) => {
 // PUT - Atualiza pedido
 router.put('/:id', (req, res) => {
     try {
-        const { quantidade, preco_total, endereco_entrega, status } = req.body;
-        const pedidoAtualizado = { 
-            quantidade, 
-            preco_total, 
-            endereco_entrega, 
-            status 
-        };
-        pedidosModel.updatePedido(req.params.id, pedidoAtualizado, res);
+        if (req.body.status) {
+            // Se apenas o status está sendo atualizado
+            pedidosModel.updateStatus(req.params.id, req.body.status, res);
+        } else {
+            // Atualização completa do pedido
+            const { quantidade, preco_total, endereco_entrega, status } = req.body;
+            const pedidoAtualizado = { 
+                quantidade, 
+                preco_total, 
+                endereco_entrega, 
+                status 
+            };
+            pedidosModel.updatePedido(req.params.id, pedidoAtualizado, res);
+        }
     } catch (error) {
         res.status(500).json({ 
             erro: 'Erro ao atualizar pedido', 

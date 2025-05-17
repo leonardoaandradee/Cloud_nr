@@ -180,10 +180,9 @@ function getPedidoById(id, res) {
 function updatePedido(id, pedido, res) {
     pedidosDB.run(
         `UPDATE pedidos 
-         SET quantidade = ?, preco_total = ?, endereco_entrega = ?, status = ?
+         SET preco_total = ?, endereco_entrega = ?, status = ?
          WHERE id = ?`,
-        [pedido.quantidade, pedido.preco_total, pedido.endereco_entrega, 
-         pedido.status, id],
+        [pedido.preco_total, pedido.endereco_entrega, pedido.status, id],
         function(err) {
             if (err) {
                 console.error("Erro ao atualizar pedido:", err.message);
@@ -209,26 +208,41 @@ function updatePedido(id, pedido, res) {
 
 // Atualiza o status de um pedido
 function updateStatus(id, status, res) {
+    console.log('Recebendo requisição de atualização:', { id, status }); // Debug
+
+    // Validar o status
+    const statusValidos = ['Pendente', 'Em Preparo', 'Saiu para Entrega', 'Entregue', 'Cancelado'];
+    if (!statusValidos.includes(status)) {
+        return res.status(400).json({
+            sucesso: false,
+            mensagem: `Status inválido. Deve ser um dos seguintes: ${statusValidos.join(', ')}`
+        });
+    }
+
     pedidosDB.run(
         `UPDATE pedidos SET status = ? WHERE id = ?`,
         [status, id],
         function(err) {
             if (err) {
-                console.error("Erro ao atualizar status do pedido:", err.message);
+                console.error('Erro SQL ao atualizar status:', err);
                 return res.status(500).json({
-                    erro: 'Erro ao atualizar status do pedido',
-                    detalhes: err.message
+                    sucesso: false,
+                    mensagem: 'Erro ao atualizar status do pedido'
                 });
             }
+
             if (this.changes === 0) {
                 return res.status(404).json({
                     sucesso: false,
-                    mensagem: 'Pedido não encontrado para atualização'
+                    mensagem: 'Pedido não encontrado'
                 });
             }
-            res.json({
+
+            console.log('Status atualizado com sucesso:', { id, status }); // Debug
+            return res.status(200).json({
                 sucesso: true,
-                mensagem: 'Status atualizado com sucesso'
+                mensagem: 'Status atualizado com sucesso',
+                pedido: { id, status }
             });
         }
     );

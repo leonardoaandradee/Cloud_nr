@@ -112,34 +112,32 @@ async function carregarPedidos() {
 
         data.dados.forEach(pedido => {
             const row = document.createElement('tr');
-            const dataFormatada = pedido.data_pedido 
-                ? new Date(pedido.data_pedido).toLocaleString('pt-BR')
-                : 'Data não disponível';
+            const dataFormatada = formatarDataPedido(pedido.data_pedido);
             const status = pedido.status || 'Pendente';
             const telefone = pedido.cliente_telefone || 'Não informado';
 
             row.innerHTML = `
-                <td>
-                    <a href="#!" onclick="mostrarDetalhesPedido(${pedido.id})" class="blue-text">
-                        #${pedido.id}
+                <td class="pedido-id">
+                    <a href="#!" 
+                       onclick="mostrarDetalhesPedido(${pedido.id})" 
+                       class="blue-text hoverable"><b>
+                        N.${pedido.id}</b>
                     </a>
                 </td>
-                <td>${dataFormatada}</td>
-                <td>
-                    ${pedido.cliente_nome}<br>
-                    <small>${telefone}</small>
+                <td class="pedido-data">${dataFormatada}</td>
+                <td class="pedido-cliente">
+                    <span class="cliente-nome">${pedido.cliente_nome}</span><br>
+                    <small class="cliente-telefone black-text">Telefone: ${telefone}</small>
                 </td>
-                <td>
-                    <select class="browser-default" onchange="atualizarStatus(${pedido.id}, this.value)">
-                        <option value="Pendente" ${status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                        <option value="Em Preparo" ${status === 'Em Preparo' ? 'selected' : ''}>Em Preparo</option>
-                        <option value="Saiu para Entrega" ${status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
-                        <option value="Entregue" ${status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                        <option value="Cancelado" ${status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                <td class="pedido-status">
+                    <select class="browser-default status-select"
+                            onchange="atualizarStatus(${pedido.id}, this.value)">
+                        ${gerarOpcoesStatus(status)}
                     </select>
                 </td>
-                <td>
-                    <button class="btn-small waves-effect waves-light red" onclick="deletarPedido(${pedido.id})">
+                <td class="pedido-acoes center-align">
+                    <button class="btn-small waves-effect waves-light red"
+                            onclick="deletarPedido(${pedido.id})">
                         <i class="material-icons">delete</i>
                     </button>
                 </td>
@@ -203,24 +201,33 @@ async function mostrarDetalhesPedido(pedidoId) {
 
 async function atualizarStatus(pedidoId, novoStatus) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}/status`, {
+        // Mostrar indicador de carregamento
+        M.toast({html: 'Atualizando status...', classes: 'orange'});
+        
+        // Fazer a atualização apenas do status
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ status: novoStatus })
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            throw new Error(data.erro || 'Erro ao atualizar status');
+            throw new Error('Erro ao atualizar status');
+        }
+
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error(data.mensagem || 'Erro ao atualizar status');
         }
         
         M.toast({html: 'Status atualizado com sucesso!', classes: 'green'});
-        // Recarregar a lista de pedidos para atualizar a visualização
-        await carregarPedidos();
+        await carregarPedidos(); // Recarrega a lista
     } catch (error) {
         console.error('Erro ao atualizar status:', error);
-        M.toast({html: error.message || 'Erro ao atualizar status', classes: 'red'});
+        M.toast({html: error.message, classes: 'red'});
     }
 }
 
@@ -546,12 +553,6 @@ async function confirmarPedido(event) {
         // Exibir modal com detalhes do pedido
         exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        // Remover manipulador de evento anterior para não limpar o formulário
-        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
-        modalInstance.options.onCloseEnd = () => {
-            window.location.href = '/';  // Redirecionar para home ao fechar
-        };
-
         await carregarPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
@@ -597,8 +598,16 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
         tbody.appendChild(tr);
     });
 
-    // Abrir o modal
+    // Configurar o modal
     const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+    
+    // Configurar evento para quando o modal for fechado
+    modalInstance.options.onCloseEnd = () => {
+        limparFormularioCompleto();
+        carregarPedidos(); // Recarrega a lista de pedidos
+    };
+    
+    // Abrir o modal
     modalInstance.open();
 }
 
@@ -619,41 +628,46 @@ function limparFormularioCompleto() {
     // Resetar primeiro item
     const primeiroItem = produtos.firstChild;
     if (primeiroItem) {
-        // Limpar selects
+        // Limpar e reinicializar selects
         primeiroItem.querySelectorAll('select').forEach(select => {
-            select.selectedIndex = 0;
+            select.innerHTML = select.classList.contains('sabor-select') 
+                ? '<option value="" disabled selected>Escolha o sabor</option>'
+                : '<option value="" disabled selected>Tamanho</option>';
             M.FormSelect.init(select);
         });
 
-        // Limpar inputs
+        // Limpar todos os inputs
         primeiroItem.querySelectorAll('input').forEach(input => {
             if (input.type === 'number') {
-                input.value = '1';
+                input.value = '1'; // Reseta quantidade para 1
             } else {
-                input.value = '';
-            }
-            // Manter apenas os labels do primeiro item
-            if (!input.readOnly) {
-                const label = input.nextElementSibling;
-                if (label && label.tagName === 'LABEL') {
-                    label.style.transform = 'translateY(-14px)'; // Resetar posição do label
-                }
+                input.value = ''; // Limpa outros inputs
             }
         });
 
-        // Limpar categoria, preço unitário e subtotal
-        primeiroItem.querySelector('.categoria-display').value = '';
-        primeiroItem.querySelector('.preco-unitario').value = '';
-        primeiroItem.querySelector('.subtotal').value = '';
+        // Garantir que os labels permaneçam na posição correta
+        primeiroItem.querySelectorAll('label').forEach(label => {
+            if (label) {
+                label.classList.add('active');
+            }
+        });
+
+        // Limpar campos específicos dos produtos
+        ['categoria-display', 'preco-unitario', 'subtotal'].forEach(className => {
+            const elemento = primeiroItem.querySelector(`.${className}`);
+            if (elemento) {
+                elemento.value = '';
+            }
+        });
     }
 
-    // Limpar total
+    // Limpar total do pedido
     document.getElementById('totalPedido').textContent = '0.00';
 
-    // Reset do formulário
+    // Reset completo do formulário
     document.getElementById('orderForm').reset();
     
-    // Fechar mapa se estiver aberto
+    // Fechar mapa
     const mapCard = document.getElementById('mapCard');
     mapCard.style.display = 'none';
     if (map) {
@@ -662,11 +676,14 @@ function limparFormularioCompleto() {
         marker = null;
     }
 
-    // Esconder card de informações do cliente
+    // Esconder informações do cliente
     document.getElementById('clienteInfo').style.display = 'none';
 
-    // Recarregar os selects de produtos para garantir estado inicial
+    // Recarregar os selects de produtos
     atualizarSelectsProdutos();
+
+    // Reinicializar todos os selects do Materialize
+    M.FormSelect.init(document.querySelectorAll('select'));
 }
 
 function limparFormulario() {
@@ -775,4 +792,33 @@ function configurarSelectsProduto(item, saboresCache) {
 
     M.FormSelect.init(saborSelect);
     M.FormSelect.init(tamanhoSelect);
+}
+
+// Funções auxiliares
+function formatarDataPedido(data) {
+    return data 
+        ? new Date(data).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'Data não disponível';
+}
+
+function gerarOpcoesStatus(statusAtual) {
+    const statusOptions = [
+        'Pendente',
+        'Em Preparo',
+        'Saiu para Entrega',
+        'Entregue',
+        'Cancelado'
+    ];
+    
+    return statusOptions.map(status => 
+        `<option value="${status}" ${status === statusAtual ? 'selected' : ''}>
+            ${status}
+         </option>`
+    ).join('');
 }
