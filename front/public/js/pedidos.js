@@ -26,6 +26,7 @@ function inicializarComponentes() {
     M.FormSelect.init(document.querySelectorAll('select'));
     carregarClientes();
     carregarProdutos();
+    carregarPedidos();
 }
 
 function configurarEventListeners() {
@@ -94,6 +95,157 @@ async function carregarProdutos() {
         atualizarSelectsProdutos();
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+    }
+}
+
+async function carregarPedidos() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos`);
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error('Erro ao carregar pedidos');
+        }
+
+        const tbody = document.getElementById('pedidos-list');
+        tbody.innerHTML = '';
+
+        data.dados.forEach(pedido => {
+            const row = document.createElement('tr');
+            const dataFormatada = formatarDataPedido(pedido.data_pedido);
+            const status = pedido.status || 'Pendente';
+            const telefone = pedido.cliente_telefone || 'Não informado';
+
+            row.innerHTML = `
+                <td class="pedido-id">
+                    <a href="#!" 
+                       onclick="mostrarDetalhesPedido(${pedido.id})" 
+                       class="blue-text hoverable"><b>
+                        N.${pedido.id}</b>
+                    </a>
+                </td>
+                <td class="pedido-data">${dataFormatada}</td>
+                <td class="pedido-cliente">
+                    <span class="cliente-nome">${pedido.cliente_nome}</span><br>
+                    <small class="cliente-telefone black-text">Telefone: ${telefone}</small>
+                </td>
+                <td class="pedido-status">
+                    <select class="browser-default status-select"
+                            onchange="atualizarStatus(${pedido.id}, this.value)">
+                        ${gerarOpcoesStatus(status)}
+                    </select>
+                </td>
+                <td class="pedido-acoes center-align">
+                    <button class="btn-small waves-effect waves-light red"
+                            onclick="deletarPedido(${pedido.id})">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        M.toast({html: 'Erro ao carregar pedidos', classes: 'red'});
+    }
+}
+
+async function mostrarDetalhesPedido(pedidoId) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
+        const data = await response.json();
+        
+        if (!data.sucesso) throw new Error('Erro ao carregar dados do pedido');
+
+        const pedido = data.dados;
+        console.log('Dados do pedido:', pedido); // Debug
+
+        // Formatar data e hora
+        const dataHora = new Date(pedido.data_pedido || pedido.data_criacao).toLocaleString('pt-BR');
+
+        // Preencher dados no modal
+        document.getElementById('numeroPedido').textContent = pedido.id;
+        document.getElementById('modalDataHora').textContent = dataHora;
+        document.getElementById('modalClienteNome').textContent = pedido.cliente_nome || 'N/A';
+        document.getElementById('modalClienteTelefone').textContent = pedido.cliente_telefone || 'N/A';
+        document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega || 'N/A';
+        document.getElementById('modalClienteComplemento').textContent = pedido.complemento || 'Sem complemento';
+        document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
+
+        // Preencher tabela de itens
+        const tbody = document.getElementById('modalItensPedido');
+        tbody.innerHTML = '';
+        
+        if (Array.isArray(pedido.itens)) {
+            pedido.itens.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.sabor || 'N/A'}</td>
+                    <td>${item.tamanho || 'N/A'}</td>
+                    <td>${item.quantidade}</td>
+                    <td>R$ ${Number(item.preco_unitario).toFixed(2)}</td>
+                    <td>R$ ${Number(item.subtotal).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Abrir o modal
+        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+        modalInstance.open();
+    } catch (error) {
+        console.error('Erro ao carregar detalhes do pedido:', error);
+        M.toast({html: 'Erro ao carregar detalhes do pedido', classes: 'red'});
+    }
+}
+
+async function atualizarStatus(pedidoId, novoStatus) {
+    try {
+        // Mostrar indicador de carregamento
+        M.toast({html: 'Atualizando status...', classes: 'orange'});
+        
+        // Fazer a atualização apenas do status
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar status');
+        }
+
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error(data.mensagem || 'Erro ao atualizar status');
+        }
+        
+        M.toast({html: 'Status atualizado com sucesso!', classes: 'green'});
+        await carregarPedidos(); // Recarrega a lista
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        M.toast({html: error.message, classes: 'red'});
+    }
+}
+
+async function deletarPedido(pedidoId) {
+    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Erro ao deletar pedido');
+
+        M.toast({html: 'Pedido deletado com sucesso!', classes: 'green'});
+        carregarPedidos(); // Recarrega a lista
+    } catch (error) {
+        console.error('Erro ao deletar pedido:', error);
+        M.toast({html: 'Erro ao deletar pedido', classes: 'red'});
     }
 }
 
@@ -401,11 +553,7 @@ async function confirmarPedido(event) {
         // Exibir modal com detalhes do pedido
         exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        // Remover manipulador de evento anterior para não limpar o formulário
-        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
-        modalInstance.options.onCloseEnd = () => {
-            window.location.href = '/';  // Redirecionar para home ao fechar
-        };
+        await carregarPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
         M.toast({html: 'Erro ao criar pedido', classes: 'red'});
@@ -450,8 +598,16 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
         tbody.appendChild(tr);
     });
 
-    // Abrir o modal
+    // Configurar o modal
     const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+    
+    // Configurar evento para quando o modal for fechado
+    modalInstance.options.onCloseEnd = () => {
+        limparFormularioCompleto();
+        carregarPedidos(); // Recarrega a lista de pedidos
+    };
+    
+    // Abrir o modal
     modalInstance.open();
 }
 
@@ -472,41 +628,46 @@ function limparFormularioCompleto() {
     // Resetar primeiro item
     const primeiroItem = produtos.firstChild;
     if (primeiroItem) {
-        // Limpar selects
+        // Limpar e reinicializar selects
         primeiroItem.querySelectorAll('select').forEach(select => {
-            select.selectedIndex = 0;
+            select.innerHTML = select.classList.contains('sabor-select') 
+                ? '<option value="" disabled selected>Escolha o sabor</option>'
+                : '<option value="" disabled selected>Tamanho</option>';
             M.FormSelect.init(select);
         });
 
-        // Limpar inputs
+        // Limpar todos os inputs
         primeiroItem.querySelectorAll('input').forEach(input => {
             if (input.type === 'number') {
-                input.value = '1';
+                input.value = '1'; // Reseta quantidade para 1
             } else {
-                input.value = '';
-            }
-            // Manter apenas os labels do primeiro item
-            if (!input.readOnly) {
-                const label = input.nextElementSibling;
-                if (label && label.tagName === 'LABEL') {
-                    label.style.transform = 'translateY(-14px)'; // Resetar posição do label
-                }
+                input.value = ''; // Limpa outros inputs
             }
         });
 
-        // Limpar categoria, preço unitário e subtotal
-        primeiroItem.querySelector('.categoria-display').value = '';
-        primeiroItem.querySelector('.preco-unitario').value = '';
-        primeiroItem.querySelector('.subtotal').value = '';
+        // Garantir que os labels permaneçam na posição correta
+        primeiroItem.querySelectorAll('label').forEach(label => {
+            if (label) {
+                label.classList.add('active');
+            }
+        });
+
+        // Limpar campos específicos dos produtos
+        ['categoria-display', 'preco-unitario', 'subtotal'].forEach(className => {
+            const elemento = primeiroItem.querySelector(`.${className}`);
+            if (elemento) {
+                elemento.value = '';
+            }
+        });
     }
 
-    // Limpar total
+    // Limpar total do pedido
     document.getElementById('totalPedido').textContent = '0.00';
 
-    // Reset do formulário
+    // Reset completo do formulário
     document.getElementById('orderForm').reset();
     
-    // Fechar mapa se estiver aberto
+    // Fechar mapa
     const mapCard = document.getElementById('mapCard');
     mapCard.style.display = 'none';
     if (map) {
@@ -515,11 +676,14 @@ function limparFormularioCompleto() {
         marker = null;
     }
 
-    // Esconder card de informações do cliente
+    // Esconder informações do cliente
     document.getElementById('clienteInfo').style.display = 'none';
 
-    // Recarregar os selects de produtos para garantir estado inicial
+    // Recarregar os selects de produtos
     atualizarSelectsProdutos();
+
+    // Reinicializar todos os selects do Materialize
+    M.FormSelect.init(document.querySelectorAll('select'));
 }
 
 function limparFormulario() {
@@ -628,4 +792,33 @@ function configurarSelectsProduto(item, saboresCache) {
 
     M.FormSelect.init(saborSelect);
     M.FormSelect.init(tamanhoSelect);
+}
+
+// Funções auxiliares
+function formatarDataPedido(data) {
+    return data 
+        ? new Date(data).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'Data não disponível';
+}
+
+function gerarOpcoesStatus(statusAtual) {
+    const statusOptions = [
+        'Pendente',
+        'Em Preparo',
+        'Saiu para Entrega',
+        'Entregue',
+        'Cancelado'
+    ];
+    
+    return statusOptions.map(status => 
+        `<option value="${status}" ${status === statusAtual ? 'selected' : ''}>
+            ${status}
+         </option>`
+    ).join('');
 }
