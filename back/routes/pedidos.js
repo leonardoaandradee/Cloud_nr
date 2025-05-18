@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const pedidosModel = require('../models/pedidos-model.js');
 
+/**
+ * Rotas para gerenciamento de pedidos
+ */
+
 // GET - Lista todos os pedidos
 router.get('/', (req, res) => {
     try {

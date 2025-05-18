@@ -1,13 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-//const viacepRouter = require('./routes/viacep');
-//const app = express();
 
+/**
+ * Rota para consulta de CEP
+ * Utiliza a API ViaCEP
+ */
 
-//app.use('/viacep', viacepRouter);
-
-
+// GET - Consulta CEP
 router.get('/:cep', async (req, res) => {
     try {
         const cep = req.params.cep.replace(/\D/g, '');
