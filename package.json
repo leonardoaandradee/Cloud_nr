@@ -4,7 +4,7 @@
   },
   "name": "cloud-nr",
   "version": "1.0.0",
-  "description": "Projeto de aplicação ultilizando Railway",
+  "description": "Projeto RUD Pizzaria - Pizza Show",
   "main": "server.js",
   "devDependencies": {},
   "scripts": {
