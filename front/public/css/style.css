@@ -9,10 +9,10 @@
 /* Estilos globais */
 body {
   background-image: url('../components/images/background_06.png');
-  background-size: cover;         /* Ajusta a imagem para cobrir toda a tela */
-  background-repeat: repeat;   /* aqui repete a imagem */
-  background-position: center;    /* Centraliza a imagem */
-  height: 100vh;                  /* Garante altura total da viewport */
+  background-size: cover;         
+  background-repeat: repeat;   
+  background-position: center;    
+  height: 100vh;                  
   margin: 0;
   font-family: Arial, sans-serif;
 }

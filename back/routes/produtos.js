@@ -6,7 +6,7 @@ const produtosModel = require('../models/produtos-model.js');
  * Rotas para gerenciamento de produtos
  */
 
-// GET
+// GET - Lista todos os produtos
 router.get('/', (req, res) => {
     try {
         produtosModel.getProdutos(res);
@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
     }
 });
 
-// POST
+// POST - Cria novo produto
 router.post('/', (req, res) => {
     try {
         const { sabor, descricao, categoria, tamanho, preco } = req.body;
@@ -26,7 +26,7 @@ router.post('/', (req, res) => {
     }
 });
 
-// GET by ID
+// GET by ID - Busca produto específico
 router.get('/:id', (req, res) => {
     try {
         produtosModel.getProdutoById(req.params.id, res);
@@ -38,7 +38,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
-// PUT by ID
+// PUT by ID - Atualiza produto
 router.put('/:id', (req, res) => {
     try {
         const { sabor, descricao, categoria, tamanho, preco } = req.body;
@@ -52,7 +52,7 @@ router.put('/:id', (req, res) => {
     }
 });
 
-// DELETE
+// DELETE - Exclui produto
 router.delete('/:id', (req, res) => {
     try {
         produtosModel.deleteProdutos(req.params.id, res);

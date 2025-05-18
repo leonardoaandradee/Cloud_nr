@@ -24,7 +24,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Middleware de logging aprimorado
+/**
+ * Só usei pra testar as requisições e exibir o tipo no consdole
+ * Não é necessário para o funcionamento do sistema
+ */
 app.use((req, res, next) => {
     console.log('Teste de tipo de requisição:', {
         method: req.method,
