@@ -118,10 +118,10 @@ async function carregarPedidos() {
 
             row.innerHTML = `
                 <td class="pedido-id">
-                    <a href="#!" 
-                       onclick="mostrarDetalhesPedido(${pedido.id})" 
-                       class="blue-text hoverable"><b>
-                        N.${pedido.id}</b>
+                    <a href="#" 
+                       onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
+                       class="blue-text text-darken-2">
+                        <b>N.${pedido.id}</b>
                     </a>
                 </td>
                 <td class="pedido-data">${dataFormatada}</td>
@@ -152,16 +152,17 @@ async function carregarPedidos() {
 
 async function mostrarDetalhesPedido(pedidoId) {
     try {
+        console.log('Buscando detalhes do pedido:', pedidoId);
         const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
         const data = await response.json();
         
         if (!data.sucesso) throw new Error('Erro ao carregar dados do pedido');
 
         const pedido = data.dados;
-        console.log('Dados do pedido:', pedido); // Debug
+        console.log('Dados do pedido recebidos:', pedido);
 
         // Formatar data e hora
-        const dataHora = new Date(pedido.data_pedido || pedido.data_criacao).toLocaleString('pt-BR');
+        const dataHora = formatarDataPedido(pedido.data_pedido);
 
         // Preencher dados no modal
         document.getElementById('numeroPedido').textContent = pedido.id;
@@ -190,9 +191,18 @@ async function mostrarDetalhesPedido(pedidoId) {
             });
         }
 
-        // Abrir o modal
-        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+        // Inicializar e abrir o modal
+        const modalElement = document.getElementById('detalhePedidoModal');
+        const modalInstance = M.Modal.init(modalElement, {
+            dismissible: true,
+            opacity: 0.5,
+            inDuration: 250,
+            outDuration: 250,
+            startingTop: '4%',
+            endingTop: '10%'
+        });
         modalInstance.open();
+
     } catch (error) {
         console.error('Erro ao carregar detalhes do pedido:', error);
         M.toast({html: 'Erro ao carregar detalhes do pedido', classes: 'red'});
