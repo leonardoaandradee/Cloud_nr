@@ -119,13 +119,63 @@
             <th>Telefone</th>
             <th>CEP</th>
             <th>Endereço</th>
-            <th>Editar/Deletar</th>
+            <th>Editar/Deletar/Histórico</th>
           </tr>
         </thead>
         <tbody id="clients-list">
           <!-- Clientes serão carregados aqui via JavaScript -->
+          <td>
+            <button onclick="editClient('${client.id}')" class="btn-small waves-effect waves-light green">
+              <i class="material-icons">edit</i>
+            </button>
+            <button onclick="deleteClient('${client.id}')" class="btn-small waves-effect waves-light red">
+              <i class="material-icons">delete</i>
+            </button>
+            <button onclick="showClientHistory('${client.id}')" class="btn-small waves-effect waves-light blue">
+              <i class="material-icons">history</i>
+            </button>
+          </td>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Modal CEP não encontrado -->
+  <div id="modalCepNaoEncontrado" class="modal modal-small" style="width: 35%; max-height: 40%;">
+    <div class="modal-content center-align">
+      <h5>CEP não localizado</h5>
+      <p>Insira os dados manualmente.</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+    </div>
+  </div>
+
+  <!-- Modal Histórico de Pedidos -->
+  <div id="modalHistoricoPedidos" class="modal">
+    <div class="modal-content">
+      <div class="center-align">
+        <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" style="height: 80px; margin-bottom: 10px;" />
+      </div>
+      <h5>Histórico de Pedidos</h5>
+      <div class="divider"></div>
+      <div class="section">
+        <h6 id="clienteHistoricoNome"></h6>
+        <table class="striped">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produtos</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="historicoList">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Fechar</a>
     </div>
   </div>
 

@@ -44,6 +44,9 @@ async function loadClients() {
                         <button onclick="deleteClient('${client.id}')" class="btn-small waves-effect waves-light red">
                             <i class="material-icons">delete</i>
                         </button>
+                        <button onclick="showClientHistory('${client.id}')" class="btn-small waves-effect waves-light blue">
+                            <i class="material-icons">history</i>
+                        </button>
                     </td>
                 </tr>
             `).join('');
@@ -68,7 +71,8 @@ async function buscarCep() {
         const data = await response.json();
 
         if (data.erro) {
-            M.toast({html: 'CEP não encontrado. Por favor, preencha os dados manualmente.'});
+            const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
+            modalInstance.open();
             return;
         }
 
@@ -80,7 +84,8 @@ async function buscarCep() {
         M.updateTextFields();
     } catch (error) {
         console.error('Erro ao buscar CEP:', error);
-        M.toast({html: 'Erro ao buscar CEP. Por favor, preencha os dados manualmente.'});
+        const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
+        modalInstance.open();
     }
 }
 
@@ -173,6 +178,46 @@ async function deleteClient(clientId) {
     }
 }
 
+async function showClientHistory(clientId) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/clientes/${clientId}/historico`);
+        const data = await response.json();
+        
+        if (!data.sucesso) {
+            throw new Error(data.erro || 'Erro ao carregar histórico');
+        }
+
+        const historicoList = document.getElementById('historicoList');
+        const clienteNome = document.getElementById('clienteHistoricoNome');
+        
+        clienteNome.textContent = `Cliente: ${data.cliente_nome}`;
+        
+        if (data.historico && data.historico.length > 0) {
+            historicoList.innerHTML = data.historico.map(pedido => `
+                <tr>
+                    <td>${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')} ${new Date(pedido.data_pedido).toLocaleTimeString('pt-BR')}</td>
+                    <td>${pedido.produtos.map(p => 
+                        `${p.sabor} (${p.quantidade}x - ${p.tamanho})`
+                    ).join(', ')}</td>
+                    <td>R$ ${Number(pedido.preco_total).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        } else {
+            historicoList.innerHTML = '<tr><td colspan="3" class="center-align">Cliente sem pedidos registrados</td></tr>';
+        }
+
+        const modal = M.Modal.getInstance(document.getElementById('modalHistoricoPedidos'));
+        modal.open();
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        M.toast({html: 'Erro ao carregar histórico de pedidos'});
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadClients();
+    const modalElem = document.getElementById('modalCepNaoEncontrado');
+    M.Modal.init(modalElem);
+    const modalHistorico = document.getElementById('modalHistoricoPedidos');
+    M.Modal.init(modalHistorico);
 });
