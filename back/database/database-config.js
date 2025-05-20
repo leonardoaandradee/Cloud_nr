@@ -90,6 +90,24 @@ db.serialize(() => {
             console.log('Tabela itens_pedido criada com sucesso.');
         }
     });
+
+    // Tabela Histórico de Pedidos
+    db.run(`
+        CREATE TABLE IF NOT EXISTS historico_pedidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            pedido_id INTEGER NOT NULL,
+            data_pedido TEXT NOT NULL,
+            produtos_pedidos TEXT NOT NULL,
+            FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+            FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
+        )`, (err) => {
+        if (err) {
+            console.error('Erro criando tabela historico_pedidos:', err.message);
+        } else {
+            console.log('Tabela historico_pedidos criada com sucesso.');
+        }
+    });
 });
 
 module.exports = db;

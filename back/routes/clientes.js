@@ -46,6 +46,46 @@ router.get('/buscar', (req, res) => {
     }
 });
 
+// Busca histórico de pedidos do cliente
+router.get('/:id/historico', async (req, res) => {
+    try {
+        const clienteId = req.params.id;
+        const db = require('../database/database-config');
+        const HistoricoPedidosModel = require('../models/historico-models');
+        
+        // Primeiro buscar os dados do cliente
+        const cliente = await new Promise((resolve, reject) => {
+            db.get('SELECT nome FROM clientes WHERE id = ?', [clienteId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!cliente) {
+            return res.status(404).json({
+                sucesso: false,
+                mensagem: 'Cliente não encontrado'
+            });
+        }
+
+        // Buscar histórico de pedidos
+        const historico = await HistoricoPedidosModel.buscarUltimosPedidos(clienteId);
+
+        res.json({
+            sucesso: true,
+            cliente_nome: cliente.nome,
+            historico: historico
+        });
+    } catch (error) {
+        console.error('Erro ao buscar histórico:', error);
+        res.status(500).json({ 
+            sucesso: false,
+            erro: 'Erro ao buscar histórico', 
+            detalhes: error.message 
+        });
+    }
+});
+
 // Cria um novo cliente
 router.post('/', (req, res) => {
     try {
