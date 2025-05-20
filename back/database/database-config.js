@@ -90,9 +90,6 @@ db.serialize(() => {
             console.log('Tabela itens_pedido criada com sucesso.');
         }
     });
-
-    // Tabela Funcionários
-
 });
 
 module.exports = db;
