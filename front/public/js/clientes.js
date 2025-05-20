@@ -1,3 +1,19 @@
+// Função utilitária para fetch autenticado com JWT
+async function fetchJWT(url, options = {}) {
+    const token = localStorage.getItem('token');
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = `Bearer ${token}`;
+    return fetch(url, options);
+}
+
+function tratar401(response) {
+    if (response.status === 401) {
+        window.location.href = '/login';
+        return true;
+    }
+    return false;
+}
+
 const MENSAGENS = {
     ERRO_CARREGAR: 'Erro ao carregar clientes',
     ERRO_SALVAR: 'Erro ao salvar cliente',
@@ -13,7 +29,8 @@ let editingClientId = null;
 
 async function loadClients() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/clientes`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes`);
+        if (tratar401(response)) return;
         if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
         
         const { dados: clients = [] } = await response.json();
@@ -108,11 +125,13 @@ async function saveClient() {
             ? `${CONFIG.API_URL}/clientes/${editingClientId}`
             : `${CONFIG.API_URL}/clientes`;
             
-        const response = await fetch(url, {
+        const response = await fetchJWT(url, {
             method: editingClientId ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
+
+        if (tratar401(response)) return;
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_SALVAR);
@@ -129,11 +148,11 @@ async function saveClient() {
 
 async function editClient(clientId) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/clientes/${clientId}`);
-        const data = await response.json();
-        
-        if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_EDITAR);
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes/${clientId}`);
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error(MENSAGENS.ERRO_EDITAR);
 
+        const data = await response.json();
         const client = data.dados;
         const form = document.getElementById('registrationForm');
         form.nome.value = client.nome;
@@ -145,12 +164,46 @@ async function editClient(clientId) {
         form.cidade.value = client.cidade || '';
         form.estado.value = client.estado || '';
         form.complemento.value = client.complemento || '';
-        
         editingClientId = clientId;
         M.updateTextFields();
+        // Carregar histórico de pedidos do cliente
+        await loadClientOrders(clientId);
     } catch (error) {
         console.error(MENSAGENS.ERRO_EDITAR, error);
         M.toast({html: error.message || MENSAGENS.ERRO_EDITAR});
+    }
+}
+
+// Função para buscar e exibir histórico de pedidos do cliente
+async function loadClientOrders(clientId) {
+    let ordersDiv = document.getElementById('client-orders-list');
+    if (!ordersDiv) {
+        // Cria a div se não existir
+        ordersDiv = document.createElement('div');
+        ordersDiv.id = 'client-orders-list';
+        // Insere após o formulário de edição
+        const form = document.getElementById('registrationForm');
+        form.parentNode.insertBefore(ordersDiv, form.nextSibling);
+    }
+    ordersDiv.innerHTML = '<p>Carregando histórico de pedidos...</p>';
+    try {
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos?clienteId=${clientId}`);
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao carregar pedidos do cliente');
+        const { dados: pedidos = [] } = await response.json();
+        if (pedidos.length === 0) {
+            ordersDiv.innerHTML = '<p>Nenhum pedido encontrado para este cliente.</p>';
+            return;
+        }
+        ordersDiv.innerHTML = `<h6>Histórico de Pedidos</h6><table class="striped"><thead><tr><th>ID</th><th>Data</th><th>Total</th><th>Status</th></tr></thead><tbody>${pedidos.map(p => `
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.data ? new Date(p.data).toLocaleString('pt-BR') : ''}</td>
+                <td>R$ ${p.preco_total ? p.preco_total.toFixed(2) : ''}</td>
+                <td>${p.status || ''}</td>
+            </tr>`).join('')}</tbody></table>`;
+    } catch (error) {
+        ordersDiv.innerHTML = '<p>Erro ao carregar histórico de pedidos.</p>';
     }
 }
 
@@ -158,13 +211,17 @@ async function deleteClient(clientId) {
     if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
     
     try {
-        const response = await fetch(`${CONFIG.API_URL}/clientes/${clientId}`, {
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes/${clientId}`, {
             method: 'DELETE'
         });
-        
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
 
+        if (tratar401(response)) return;
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
+        }
+        const data = await response.json();
         M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
         await loadClients();
     } catch (error) {
