@@ -71,8 +71,11 @@ async function buscarCep() {
         const data = await response.json();
 
         if (data.erro) {
-            const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
-            modalInstance.open();
+            Swal.fire({
+                title: 'CEP não encontrado',
+                text: 'Por favor, insira os dados manualmente.',
+                icon: 'warning'
+            });
             return;
         }
 
@@ -84,8 +87,11 @@ async function buscarCep() {
         M.updateTextFields();
     } catch (error) {
         console.error('Erro ao buscar CEP:', error);
-        const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
-        modalInstance.open();
+        Swal.fire({
+            title: 'Erro',
+            text: 'Não foi possível buscar o CEP. Por favor, insira os dados manualmente.',
+            icon: 'error'
+        });
     }
 }
 
@@ -160,7 +166,16 @@ async function editClient(clientId) {
 }
 
 async function deleteClient(clientId) {
-    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
+    const result = await Swal.fire({
+        title: 'Confirmar exclusão',
+        text: 'Tem certeza que deseja excluir este cliente?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
     
     try {
         const response = await fetch(`${CONFIG.API_URL}/clientes/${clientId}`, {
@@ -170,11 +185,19 @@ async function deleteClient(clientId) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
 
-        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
+        Swal.fire({
+            title: 'Sucesso!',
+            text: data.mensagem || MENSAGENS.SUCESSO_DELETAR,
+            icon: 'success'
+        });
         await loadClients();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || MENSAGENS.ERRO_DELETAR,
+            icon: 'error'
+        });
     }
 }
 
@@ -220,4 +243,18 @@ document.addEventListener('DOMContentLoaded', function() {
     M.Modal.init(modalElem);
     const modalHistorico = document.getElementById('modalHistoricoPedidos');
     M.Modal.init(modalHistorico);
+
+    // Implementação da máscara de telefone
+    const phoneInput = document.getElementById('clientPhone');
+    const maskPhoneOptions = {
+        mask: '+55 (00) 0 0000-0000'
+    };
+    IMask(phoneInput, maskPhoneOptions);
+
+    // Implementação da máscara de CEP
+    const cepInput = document.getElementById('clientCep');
+    const maskCepOptions = {
+        mask: '00000-000'
+    };
+    IMask(cepInput, maskCepOptions);
 });

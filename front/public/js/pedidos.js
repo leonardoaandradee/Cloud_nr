@@ -58,7 +58,11 @@ async function carregarClientes() {
         processarDadosClientes(json);
     } catch (error) {
         console.error('Erro ao carregar clientes:', error);
-        M.toast({html: 'Erro ao carregar clientes: ' + error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar clientes: ' + error.message,
+            icon: 'error'
+        });
     }
 }
 
@@ -95,6 +99,11 @@ async function carregarProdutos() {
         atualizarSelectsProdutos();
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar produtos',
+            icon: 'error'
+        });
     }
 }
 
@@ -146,7 +155,11 @@ async function carregarPedidos() {
         });
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
-        M.toast({html: 'Erro ao carregar pedidos', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar pedidos',
+            icon: 'error'
+        });
     }
 }
 
@@ -205,14 +218,24 @@ async function mostrarDetalhesPedido(pedidoId) {
 
     } catch (error) {
         console.error('Erro ao carregar detalhes do pedido:', error);
-        M.toast({html: 'Erro ao carregar detalhes do pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar detalhes do pedido',
+            icon: 'error'
+        });
     }
 }
 
 async function atualizarStatus(pedidoId, novoStatus) {
     try {
         // Mostrar indicador de carregamento
-        M.toast({html: 'Atualizando status...', classes: 'orange'});
+        Swal.fire({
+            title: 'Atualizando status...',
+            text: 'Por favor, aguarde.',
+            icon: 'info',
+            showConfirmButton: false,
+            timer: 1500
+        });
         
         // Fazer a atualização apenas do status
         const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
@@ -233,16 +256,33 @@ async function atualizarStatus(pedidoId, novoStatus) {
             throw new Error(data.mensagem || 'Erro ao atualizar status');
         }
         
-        M.toast({html: 'Status atualizado com sucesso!', classes: 'green'});
+        Swal.fire({
+            title: 'Sucesso!',
+            text: 'Status atualizado com sucesso!',
+            icon: 'success'
+        });
         await carregarPedidos(); // Recarrega a lista
     } catch (error) {
         console.error('Erro ao atualizar status:', error);
-        M.toast({html: error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message,
+            icon: 'error'
+        });
     }
 }
 
 async function deletarPedido(pedidoId) {
-    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
+    const result = await Swal.fire({
+        title: 'Confirmar exclusão',
+        text: 'Tem certeza que deseja excluir este pedido?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
         const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
@@ -251,11 +291,19 @@ async function deletarPedido(pedidoId) {
 
         if (!response.ok) throw new Error('Erro ao deletar pedido');
 
-        M.toast({html: 'Pedido deletado com sucesso!', classes: 'green'});
-        carregarPedidos(); // Recarrega a lista
+        Swal.fire({
+            title: 'Sucesso!',
+            text: 'Pedido deletado com sucesso!',
+            icon: 'success'
+        });
+        carregarPedidos();
     } catch (error) {
         console.error('Erro ao deletar pedido:', error);
-        M.toast({html: 'Erro ao deletar pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao deletar pedido',
+            icon: 'error'
+        });
     }
 }
 
@@ -267,7 +315,11 @@ async function buscarCliente() {
     console.log('Buscando cliente com telefone:', telefone);
     
     if (!telefone) {
-        M.toast({html: 'Por favor, insira um telefone', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, insira um telefone',
+            icon: 'error'
+        });
         return;
     }
 
@@ -305,14 +357,22 @@ async function buscarDadosAtualizadosCliente(clienteEncontrado) {
     } catch (error) {
         console.error('Erro ao buscar dados atualizados do cliente:', error);
         limparDadosCliente();
-        M.toast({html: error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message,
+            icon: 'error'
+        });
     }
 }
 
 function tratarErrosBuscaCliente(error) {
     console.error('Erro ao buscar cliente:', error);
     limparDadosCliente();
-    M.toast({html: error.message, classes: 'red'});
+    Swal.fire({
+        title: 'Erro!',
+        text: error.message,
+        icon: 'error'
+    });
 }
 
 async function exibirDadosCliente(cliente) {
@@ -338,7 +398,11 @@ async function exibirDadosCliente(cliente) {
     `;
     M.FormSelect.init(enderecoSelect);
     
-    M.toast({html: 'Cliente encontrado!', classes: 'green'});
+    Swal.fire({
+        title: 'Sucesso!',
+        text: 'Cliente encontrado!',
+        icon: 'success'
+    });
 
     // Geocodificar e exibir mapa
     await exibirMapa(cliente);
@@ -382,7 +446,11 @@ async function exibirMapa(cliente) {
             </div>
         `;
         mapCard.style.display = 'block';
-        M.toast({html: 'Erro ao carregar o mapa', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar o mapa',
+            icon: 'error'
+        });
     }
 }
 
@@ -439,7 +507,11 @@ function removeProduto(element) {
         element.closest('.produto-item').remove();
         calcularTotal();
     } else {
-        M.toast({html: 'O pedido deve ter pelo menos um item', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'O pedido deve ter pelo menos um item',
+            icon: 'error'
+        });
     }
 }
 
@@ -507,7 +579,11 @@ async function confirmarPedido(event) {
     const endereco = document.getElementById('endereco').value;
     
     if (!clienteEncontrado || !endereco) {
-        M.toast({html: 'Por favor, selecione um cliente e endereço de entrega', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, selecione um cliente e endereço de entrega',
+            icon: 'error'
+        });
         return;
     }
 
@@ -538,7 +614,11 @@ async function confirmarPedido(event) {
     });
 
     if (erroValidacao || itens.length === 0) {
-        M.toast({html: 'Por favor, verifique os produtos do pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, verifique os produtos do pedido',
+            icon: 'error'
+        });
         return;
     }
 
@@ -566,7 +646,11 @@ async function confirmarPedido(event) {
         await carregarPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: 'Erro ao criar pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao criar pedido',
+            icon: 'error'
+        });
     }
 }
 

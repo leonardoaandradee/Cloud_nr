@@ -11,6 +11,22 @@ const MENSAGENS = {
 
 let editingProductId = null;
 
+function mostrarErro(mensagem) {
+    Swal.fire({
+        title: 'Erro!',
+        text: mensagem,
+        icon: 'error'
+    });
+}
+
+function mostrarSucesso(mensagem) {
+    Swal.fire({
+        title: 'Sucesso!',
+        text: mensagem,
+        icon: 'success'
+    });
+}
+
 // Função para carregar a lista de produtos
 async function loadProducts() {
     try {
@@ -45,7 +61,7 @@ async function loadProducts() {
             `).join('');
     } catch (error) {
         console.error(MENSAGENS.ERRO_CARREGAR, error);
-        M.toast({html: MENSAGENS.ERRO_CARREGAR});
+        mostrarErro(MENSAGENS.ERRO_CARREGAR);
         document.getElementById('products-list').innerHTML = 
             '<tr><td colspan="6">Erro ao carregar produtos</td></tr>';
     }
@@ -63,7 +79,7 @@ async function saveProduct() {
     };
 
     if (!formData.sabor || !formData.tamanho || isNaN(formData.preco)) {
-        M.toast({html: MENSAGENS.CAMPOS_OBRIGATORIOS});
+        mostrarErro(MENSAGENS.CAMPOS_OBRIGATORIOS);
         return;
     }
 
@@ -81,13 +97,13 @@ async function saveProduct() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_SALVAR);
 
-        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_SALVAR});
+        mostrarSucesso(data.mensagem || MENSAGENS.SUCESSO_SALVAR);
         form.reset();
         editingProductId = null;
         await loadProducts();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || MENSAGENS.ERRO_SALVAR});
+        mostrarErro(error.message || MENSAGENS.ERRO_SALVAR);
     }
 }
 
@@ -117,13 +133,22 @@ async function editProduct(productId) {
         M.FormSelect.init(document.querySelectorAll('select'));
     } catch (error) {
         console.error(MENSAGENS.ERRO_EDITAR, error);
-        M.toast({html: error.message || MENSAGENS.ERRO_EDITAR});
+        mostrarErro(error.message || MENSAGENS.ERRO_EDITAR);
     }
 }
 
 // Função para deletar um produto
 async function deleteProduct(productId) {
-    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
+    const result = await Swal.fire({
+        title: 'Confirmar exclusão',
+        text: MENSAGENS.CONFIRMA_DELETAR,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
     
     try {
         const response = await fetch(`${CONFIG.API_URL}/produtos/${productId}`, {
@@ -133,11 +158,11 @@ async function deleteProduct(productId) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
 
-        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
+        mostrarSucesso(data.mensagem || MENSAGENS.SUCESSO_DELETAR);
         await loadProducts();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
+        mostrarErro(error.message || MENSAGENS.ERRO_DELETAR);
     }
 }
 
