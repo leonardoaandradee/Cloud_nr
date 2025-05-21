@@ -11,10 +11,27 @@ const MENSAGENS = {
 
 let editingProductId = null;
 
+function tratar401(response) {
+    if (response.status === 401) {
+        window.location.href = '/login';
+        return true;
+    }
+    return false;
+}
+
+// Função utilitária para fetch autenticado com JWT
+async function fetchJWT(url, options = {}) {
+    const token = localStorage.getItem('token');
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = `Bearer ${token}`;
+    return fetch(url, options);
+}
+
 // Função para carregar a lista de produtos
 async function loadProducts() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/produtos`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/produtos`);
+        if (tratar401(response)) return;
         if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
         
         const { dados: products = [] } = await response.json();
@@ -72,7 +89,7 @@ async function saveProduct() {
             ? `${CONFIG.API_URL}/produtos/${editingProductId}`
             : `${CONFIG.API_URL}/produtos`;
             
-        const response = await fetch(url, {
+        const response = await fetchJWT(url, {
             method: editingProductId ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -94,7 +111,7 @@ async function saveProduct() {
 // Função para editar um produto
 async function editProduct(productId) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/produtos/${productId}`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/produtos/${productId}`);
         const data = await response.json();
         
         if (!response.ok) {
@@ -126,7 +143,7 @@ async function deleteProduct(productId) {
     if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
     
     try {
-        const response = await fetch(`${CONFIG.API_URL}/produtos/${productId}`, {
+        const response = await fetchJWT(`${CONFIG.API_URL}/produtos/${productId}`, {
             method: 'DELETE'
         });
         

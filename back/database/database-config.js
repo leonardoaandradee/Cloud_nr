@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3');
 const path = require('path');
 
-// Caminho correto para o banco de dados
+// Caminho correto para o banco de dados da aplicação
 const dbPath = path.join(__dirname, '../../pizzariaDataBase.db');
 
 // Conexão com o banco de dados

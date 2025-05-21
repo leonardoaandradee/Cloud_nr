@@ -1,8 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const logger = require('morgan');
 const cors = require('cors');
 const indexRouter = require('./routes/index');
+
+
+
+
+
 
 const app = express();
 
@@ -18,7 +24,7 @@ app.use('/js', express.static(path.join(__dirname, 'public/js')));
 
 // Configuração do CORS
 app.use(cors({
-  origin: '*',
+  origin: 'https://humble-space-halibut-5gqpw5x4p5vwc7q76-4000.app.github.dev',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -29,6 +35,8 @@ app.use(cors({
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+
 
 // Rotas
 app.use('/', indexRouter);

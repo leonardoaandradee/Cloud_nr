@@ -3,10 +3,42 @@
  * Inclui funcionalidades de busca de clientes, produtos e criação de pedidos
  */
 
+
+// Função para tratar erro 401
+function tratar401(response) {
+    if (response.status === 401) {
+        window.location.href = '/login';
+        return true;
+    }
+    return false;
+}
+
+// Função utilitária para fetch autenticado com JWT
+async function fetchJWT(url, options = {}) {
+    const token = localStorage.getItem('token');
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = `Bearer ${token}`;
+    return fetch(url, options);
+}
+
+const MENSAGENS = {
+    ERRO_CARREGAR: 'Erro ao carregar pedidos',
+    ERRO_SALVAR: 'Erro ao salvar pedido',
+    ERRO_DELETAR: 'Erro ao excluir pedido',
+    ERRO_EDITAR: 'Erro ao carregar pedido para edição',
+    CAMPOS_OBRIGATORIOS: 'Por favor, preencha os campos obrigatórios',
+    SUCESSO_SALVAR: 'Pedido salvo com sucesso!',
+    SUCESSO_DELETAR: 'Pedido excluído com sucesso!',
+    CONFIRMA_DELETAR: 'Tem certeza que deseja excluir este pedido?'
+};
+
+let editingPedidoId = null;
+
 // Inicialização do documento
 document.addEventListener('DOMContentLoaded', function() {
     inicializarComponentes();
     configurarEventListeners();
+    loadPedidos();
     // Inicializar modals
     var modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
@@ -26,7 +58,6 @@ function inicializarComponentes() {
     M.FormSelect.init(document.querySelectorAll('select'));
     carregarClientes();
     carregarProdutos();
-    carregarPedidos();
 }
 
 function configurarEventListeners() {
@@ -47,7 +78,8 @@ function configurarEventListeners() {
 async function carregarClientes() {
     try {
         console.log('Iniciando carregamento de clientes...');
-        const response = await fetch(`${CONFIG.API_URL}/clientes`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes`);
+        if (tratar401(response)) return;
         console.log('Response status:', response.status);
         
         if (!response.ok) throw new Error('Erro ao carregar clientes');
@@ -89,173 +121,30 @@ function processarDadosClientes(json) {
 
 async function carregarProdutos() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/produtos`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/produtos`);
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao carregar produtos');
         const data = await response.json();
         produtosData = data.dados;
         atualizarSelectsProdutos();
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+        M.toast({html: 'Erro ao carregar produtos: ' + error.message, classes: 'red'});
     }
 }
 
-async function carregarPedidos() {
+async function loadPedidos() {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/pedidos`);
-        const data = await response.json();
-        
-        if (!data.sucesso) {
-            throw new Error('Erro ao carregar pedidos');
-        }
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos`);
+        if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
 
-        const tbody = document.getElementById('pedidos-list');
-        tbody.innerHTML = '';
+        const { dados: pedidos = [] } = await response.json();
 
-        data.dados.forEach(pedido => {
-            const row = document.createElement('tr');
-            const dataFormatada = formatarDataPedido(pedido.data_pedido);
-            const status = pedido.status || 'Pendente';
-            const telefone = pedido.cliente_telefone || 'Não informado';
-
-            row.innerHTML = `
-                <td class="pedido-id">
-                    <a href="#" 
-                       onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
-                       class="blue-text text-darken-2">
-                        <b>N.${pedido.id}</b>
-                    </a>
-                </td>
-                <td class="pedido-data">${dataFormatada}</td>
-                <td class="pedido-cliente">
-                    <span class="cliente-nome">${pedido.cliente_nome}</span><br>
-                    <small class="cliente-telefone black-text">Telefone: ${telefone}</small>
-                </td>
-                <td class="pedido-status">
-                    <select class="browser-default status-select"
-                            onchange="atualizarStatus(${pedido.id}, this.value)">
-                        ${gerarOpcoesStatus(status)}
-                    </select>
-                </td>
-                <td class="pedido-acoes center-align">
-                    <button class="btn-small waves-effect waves-light red"
-                            onclick="deletarPedido(${pedido.id})">
-                        <i class="material-icons">delete</i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        // ...processar e exibir os pedidos na tabela/lista...
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
-        M.toast({html: 'Erro ao carregar pedidos', classes: 'red'});
-    }
-}
-
-async function mostrarDetalhesPedido(pedidoId) {
-    try {
-        console.log('Buscando detalhes do pedido:', pedidoId);
-        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
-        const data = await response.json();
-        
-        if (!data.sucesso) throw new Error('Erro ao carregar dados do pedido');
-
-        const pedido = data.dados;
-        console.log('Dados do pedido recebidos:', pedido);
-
-        // Formatar data e hora
-        const dataHora = formatarDataPedido(pedido.data_pedido);
-
-        // Preencher dados no modal
-        document.getElementById('numeroPedido').textContent = pedido.id;
-        document.getElementById('modalDataHora').textContent = dataHora;
-        document.getElementById('modalClienteNome').textContent = pedido.cliente_nome || 'N/A';
-        document.getElementById('modalClienteTelefone').textContent = pedido.cliente_telefone || 'N/A';
-        document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega || 'N/A';
-        document.getElementById('modalClienteComplemento').textContent = pedido.complemento || 'Sem complemento';
-        document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
-
-        // Preencher tabela de itens
-        const tbody = document.getElementById('modalItensPedido');
-        tbody.innerHTML = '';
-        
-        if (Array.isArray(pedido.itens)) {
-            pedido.itens.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.sabor || 'N/A'}</td>
-                    <td>${item.tamanho || 'N/A'}</td>
-                    <td>${item.quantidade}</td>
-                    <td>R$ ${Number(item.preco_unitario).toFixed(2)}</td>
-                    <td>R$ ${Number(item.subtotal).toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Inicializar e abrir o modal
-        const modalElement = document.getElementById('detalhePedidoModal');
-        const modalInstance = M.Modal.init(modalElement, {
-            dismissible: true,
-            opacity: 0.5,
-            inDuration: 250,
-            outDuration: 250,
-            startingTop: '4%',
-            endingTop: '10%'
-        });
-        modalInstance.open();
-
-    } catch (error) {
-        console.error('Erro ao carregar detalhes do pedido:', error);
-        M.toast({html: 'Erro ao carregar detalhes do pedido', classes: 'red'});
-    }
-}
-
-async function atualizarStatus(pedidoId, novoStatus) {
-    try {
-        // Mostrar indicador de carregamento
-        M.toast({html: 'Atualizando status...', classes: 'orange'});
-        
-        // Fazer a atualização apenas do status
-        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: novoStatus })
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao atualizar status');
-        }
-
-        const data = await response.json();
-        
-        if (!data.sucesso) {
-            throw new Error(data.mensagem || 'Erro ao atualizar status');
-        }
-        
-        M.toast({html: 'Status atualizado com sucesso!', classes: 'green'});
-        await carregarPedidos(); // Recarrega a lista
-    } catch (error) {
-        console.error('Erro ao atualizar status:', error);
-        M.toast({html: error.message, classes: 'red'});
-    }
-}
-
-async function deletarPedido(pedidoId) {
-    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
-
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) throw new Error('Erro ao deletar pedido');
-
-        M.toast({html: 'Pedido deletado com sucesso!', classes: 'green'});
-        carregarPedidos(); // Recarrega a lista
-    } catch (error) {
-        console.error('Erro ao deletar pedido:', error);
-        M.toast({html: 'Erro ao deletar pedido', classes: 'red'});
+        M.toast({html: MENSAGENS.ERRO_CARREGAR});
+        // Atualize a interface conforme necessário
     }
 }
 
@@ -288,18 +177,15 @@ async function buscarCliente() {
 
 async function buscarDadosAtualizadosCliente(clienteEncontrado) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/clientes/${clienteEncontrado.id}`);
-        
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes/${clienteEncontrado.id}`);
+        if (tratar401(response)) return;
         if (!response.ok) {
             throw new Error('Erro ao buscar dados do cliente');
         }
-
         const json = await response.json();
-        
         if (!json.sucesso || !json.dados) {
             throw new Error('Dados do cliente não encontrados');
         }
-
         clientesData[clienteEncontrado.id] = json.dados;
         exibirDadosCliente(json.dados);
     } catch (error) {
@@ -550,7 +436,7 @@ async function confirmarPedido(event) {
     };
 
     try {
-        const response = await fetch(`${CONFIG.API_URL}/pedidos`, {
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
@@ -563,7 +449,7 @@ async function confirmarPedido(event) {
         // Exibir modal com detalhes do pedido
         exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        await carregarPedidos(); // Recarrega a lista de pedidos
+        await loadPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
         M.toast({html: 'Erro ao criar pedido', classes: 'red'});
@@ -614,7 +500,7 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
     // Configurar evento para quando o modal for fechado
     modalInstance.options.onCloseEnd = () => {
         limparFormularioCompleto();
-        carregarPedidos(); // Recarrega a lista de pedidos
+        loadPedidos(); // Recarrega a lista de pedidos
     };
     
     // Abrir o modal
@@ -715,6 +601,7 @@ function limparFormulario() {
 }
 
 function atualizarSelectsProdutos() {
+    if (!Array.isArray(produtosData) || produtosData.length === 0) return;
     const sabores = produtosData.reduce((acc, produto) => {
         if (!acc[produto.id]) {
             acc[produto.id] = {
@@ -730,7 +617,6 @@ function atualizarSelectsProdutos() {
         });
         return acc;
     }, {});
-
     document.querySelectorAll('.produto-item').forEach(item => {
         configurarSelectsProduto(item, sabores);
     });
@@ -831,4 +717,83 @@ function gerarOpcoesStatus(statusAtual) {
             ${status}
          </option>`
     ).join('');
+}
+
+async function savePedido() {
+    const form = document.getElementById('pedidoForm');
+    // Monte o objeto pedidoData conforme seu formulário
+    const pedidoData = {
+        // exemplo:
+        // clienteId: form.clienteId.value,
+        // produtos: [...],
+        // total: ...
+    };
+
+    // Validação dos campos obrigatórios
+    // if (!pedidoData.clienteId || ...) {
+    //     M.toast({html: MENSAGENS.CAMPOS_OBRIGATORIOS});
+    //     return;
+    // }
+
+    try {
+        const url = editingPedidoId 
+            ? `${CONFIG.API_URL}/pedidos/${editingPedidoId}`
+            : `${CONFIG.API_URL}/pedidos`;
+
+        const response = await fetchJWT(url, {
+            method: editingPedidoId ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedidoData)
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_SALVAR);
+
+        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_SALVAR});
+        form.reset();
+        editingPedidoId = null;
+        await loadPedidos();
+    } catch (error) {
+        console.error('Erro:', error);
+        M.toast({html: error.message || MENSAGENS.ERRO_SALVAR});
+    }
+}
+
+async function editPedido(pedidoId) {
+    try {
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
+        if (!response.ok) throw new Error(MENSAGENS.ERRO_EDITAR);
+
+        const data = await response.json();
+        const pedido = data.dados;
+        const form = document.getElementById('pedidoForm');
+        // Preencha os campos do formulário com os dados do pedido
+        // form.clienteId.value = pedido.clienteId;
+        // ...
+        editingPedidoId = pedidoId;
+        M.updateTextFields();
+    } catch (error) {
+        console.error(MENSAGENS.ERRO_EDITAR, error);
+        M.toast({html: error.message || MENSAGENS.ERRO_EDITAR});
+    }
+}
+
+async function deletePedido(pedidoId) {
+    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
+
+    try {
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
+        }
+        const data = await response.json();
+        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
+        await loadPedidos();
+    } catch (error) {
+        console.error('Erro:', error);
+        M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
+    }
 }

@@ -33,4 +33,9 @@ router.get('/pedidos', (req, res) => {
     });
 });
 
+// Rota para página de login
+router.get('/login', (req, res) => {
+    res.render('pages/login/login');
+});
+
 module.exports = router;

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body style="background: url('/components/images/background_04.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh;">
+  <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+    <div class="row" style="width:100%;">
+      <div class="col s12 m6 offset-m3 l4 offset-l4">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title center-align">Login</span>
+            <form id="login-form">
+              <div class="input-field">
+                <input id="username" name="username" type="text" required>
+                <label for="username">Usuário</label>
+              </div>
+              <div class="input-field">
+                <input id="password" name="password" type="password" required>
+                <label for="password">Senha</label>
+              </div>
+              <div class="center-align">
+                <button class="btn waves-effect waves-light red" type="submit">Entrar
+                  <i class="material-icons right">send</i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/materialize.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,12 +1,16 @@
 {
   "dependencies": {
-    "json-server": "^0.17.4"
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express-session": "^1.18.1",
+    "json-server": "^0.17.4",
+    "jsonwebtoken": "^9.0.2"
   },
   "name": "cloud-nr",
   "version": "1.0.0",
   "description": "Projeto Pizzaria - Pizza Show",
   "main": "server.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
