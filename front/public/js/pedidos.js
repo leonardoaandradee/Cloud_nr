@@ -38,10 +38,20 @@ let editingPedidoId = null;
 document.addEventListener('DOMContentLoaded', function() {
     inicializarComponentes();
     configurarEventListeners();
-    loadPedidos();
+    carregarPedidos();
     // Inicializar modals
     var modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
+    // IMask para telefone do cliente
+    const phoneInput = document.getElementById('phoneSearch');
+    if (phoneInput) {
+        IMask(phoneInput, { mask: '+55 (00) 0 0000-0000' });
+    }
+    // IMask para CEP (caso exista campo de CEP na tela de pedidos)
+    const cepInput = document.getElementById('clientCep');
+    if (cepInput) {
+        IMask(cepInput, { mask: '00000-000' });
+    }
 });
 
 // Cache de dados global
@@ -90,7 +100,11 @@ async function carregarClientes() {
         processarDadosClientes(json);
     } catch (error) {
         console.error('Erro ao carregar clientes:', error);
-        M.toast({html: 'Erro ao carregar clientes: ' + error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar clientes: ' + error.message,
+            icon: 'error'
+        });
     }
 }
 
@@ -129,22 +143,93 @@ async function carregarProdutos() {
         atualizarSelectsProdutos();
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
-        M.toast({html: 'Erro ao carregar produtos: ' + error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar produtos',
+            icon: 'error'
+        });
     }
 }
 
-async function loadPedidos() {
+async function carregarPedidos() {
     try {
         const response = await fetchJWT(`${CONFIG.API_URL}/pedidos`);
-        if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
-
-        const { dados: pedidos = [] } = await response.json();
-
-        // ...processar e exibir os pedidos na tabela/lista...
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao carregar pedidos');
+        const data = await response.json();
+        if (!data.sucesso) throw new Error('Erro ao carregar pedidos');
+        const tbody = document.getElementById('pedidos-list');
+        tbody.innerHTML = '';
+        data.dados.forEach(pedido => {
+            const row = document.createElement('tr');
+            const dataFormatada = formatarDataPedido(pedido.data_pedido);
+            const status = pedido.status || 'Pendente';
+            const telefone = pedido.cliente_telefone || 'Não informado';
+            row.innerHTML = `
+                <td class="pedido-id">
+                    <a href="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" class="blue-text text-darken-2">
+                        <b>N.${pedido.id}</b>
+                    </a>
+                </td>
+                <td class="pedido-data">${dataFormatada}</td>
+                <td class="pedido-cliente">
+                    <span class="cliente-nome">${pedido.cliente_nome}</span><br>
+                    <small class="cliente-telefone black-text">Telefone: ${telefone}</small>
+                </td>
+                <td class="pedido-status">
+                    <select class="browser-default status-select" onchange="atualizarStatus(${pedido.id}, this.value)">
+                        ${gerarOpcoesStatus(status)}
+                    </select>
+                </td>
+                <td class="pedido-acoes center-align">
+                    <button class="btn-small waves-effect waves-light red" onclick="deletarPedido(${pedido.id})">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
-        M.toast({html: MENSAGENS.ERRO_CARREGAR});
-        // Atualize a interface conforme necessário
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar pedidos',
+            icon: 'error'
+        });
+    }
+}
+
+async function atualizarStatus(pedidoId, novoStatus) {
+    try {
+        Swal.fire({
+            title: 'Atualizando status...',
+            text: 'Por favor, aguarde.',
+            icon: 'info',
+            showConfirmButton: false,
+            timer: 1500
+        });
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+        });
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao atualizar status');
+        const data = await response.json();
+        if (!data.sucesso) throw new Error(data.mensagem || 'Erro ao atualizar status');
+        Swal.fire({
+            title: 'Sucesso!',
+            text: 'Status atualizado com sucesso!',
+            icon: 'success'
+        });
+        await carregarPedidos();
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message,
+            icon: 'error'
+        });
     }
 }
 
@@ -156,7 +241,11 @@ async function buscarCliente() {
     console.log('Buscando cliente com telefone:', telefone);
     
     if (!telefone) {
-        M.toast({html: 'Por favor, insira um telefone', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, insira um telefone',
+            icon: 'error'
+        });
         return;
     }
 
@@ -191,14 +280,22 @@ async function buscarDadosAtualizadosCliente(clienteEncontrado) {
     } catch (error) {
         console.error('Erro ao buscar dados atualizados do cliente:', error);
         limparDadosCliente();
-        M.toast({html: error.message, classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message,
+            icon: 'error'
+        });
     }
 }
 
 function tratarErrosBuscaCliente(error) {
     console.error('Erro ao buscar cliente:', error);
     limparDadosCliente();
-    M.toast({html: error.message, classes: 'red'});
+    Swal.fire({
+        title: 'Erro!',
+        text: error.message,
+        icon: 'error'
+    });
 }
 
 async function exibirDadosCliente(cliente) {
@@ -224,7 +321,11 @@ async function exibirDadosCliente(cliente) {
     `;
     M.FormSelect.init(enderecoSelect);
     
-    M.toast({html: 'Cliente encontrado!', classes: 'green'});
+    Swal.fire({
+        title: 'Sucesso!',
+        text: 'Cliente encontrado!',
+        icon: 'success'
+    });
 
     // Geocodificar e exibir mapa
     await exibirMapa(cliente);
@@ -268,7 +369,11 @@ async function exibirMapa(cliente) {
             </div>
         `;
         mapCard.style.display = 'block';
-        M.toast({html: 'Erro ao carregar o mapa', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar o mapa',
+            icon: 'error'
+        });
     }
 }
 
@@ -325,7 +430,11 @@ function removeProduto(element) {
         element.closest('.produto-item').remove();
         calcularTotal();
     } else {
-        M.toast({html: 'O pedido deve ter pelo menos um item', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'O pedido deve ter pelo menos um item',
+            icon: 'error'
+        });
     }
 }
 
@@ -393,7 +502,11 @@ async function confirmarPedido(event) {
     const endereco = document.getElementById('endereco').value;
     
     if (!clienteEncontrado || !endereco) {
-        M.toast({html: 'Por favor, selecione um cliente e endereço de entrega', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, selecione um cliente e endereço de entrega',
+            icon: 'error'
+        });
         return;
     }
 
@@ -424,7 +537,11 @@ async function confirmarPedido(event) {
     });
 
     if (erroValidacao || itens.length === 0) {
-        M.toast({html: 'Por favor, verifique os produtos do pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Por favor, verifique os produtos do pedido',
+            icon: 'error'
+        });
         return;
     }
 
@@ -449,10 +566,14 @@ async function confirmarPedido(event) {
         // Exibir modal com detalhes do pedido
         exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        await loadPedidos(); // Recarrega a lista de pedidos
+        await carregarPedidos(); // Recarrega a lista de pedidos
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: 'Erro ao criar pedido', classes: 'red'});
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao criar pedido',
+            icon: 'error'
+        });
     }
 }
 
@@ -500,7 +621,7 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
     // Configurar evento para quando o modal for fechado
     modalInstance.options.onCloseEnd = () => {
         limparFormularioCompleto();
-        loadPedidos(); // Recarrega a lista de pedidos
+        carregarPedidos(); // Recarrega a lista de pedidos
     };
     
     // Abrir o modal
@@ -731,7 +852,11 @@ async function savePedido() {
 
     // Validação dos campos obrigatórios
     // if (!pedidoData.clienteId || ...) {
-    //     M.toast({html: MENSAGENS.CAMPOS_OBRIGATORIOS});
+    //     Swal.fire({
+    //         title: 'Erro!',
+    //         text: MENSAGENS.CAMPOS_OBRIGATORIOS,
+    //         icon: 'error'
+    //     });
     //     return;
     // }
 
@@ -749,13 +874,21 @@ async function savePedido() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_SALVAR);
 
-        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_SALVAR});
+        Swal.fire({
+            title: 'Sucesso!',
+            text: data.mensagem || MENSAGENS.SUCESSO_SALVAR,
+            icon: 'success'
+        });
         form.reset();
         editingPedidoId = null;
-        await loadPedidos();
+        await carregarPedidos();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || MENSAGENS.ERRO_SALVAR});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || MENSAGENS.ERRO_SALVAR,
+            icon: 'error'
+        });
     }
 }
 
@@ -774,12 +907,24 @@ async function editPedido(pedidoId) {
         M.updateTextFields();
     } catch (error) {
         console.error(MENSAGENS.ERRO_EDITAR, error);
-        M.toast({html: error.message || MENSAGENS.ERRO_EDITAR});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || MENSAGENS.ERRO_EDITAR,
+            icon: 'error'
+        });
     }
 }
 
 async function deletePedido(pedidoId) {
-    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
+    const result = await Swal.fire({
+        title: 'Confirmar exclusão',
+        text: 'Tem certeza que deseja excluir este pedido?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
 
     try {
         const response = await fetchJWT(`${CONFIG.API_URL}/pedidos/${pedidoId}`, {
@@ -790,10 +935,18 @@ async function deletePedido(pedidoId) {
             throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
         }
         const data = await response.json();
-        M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
-        await loadPedidos();
+        Swal.fire({
+            title: 'Sucesso!',
+            text: data.mensagem || MENSAGENS.SUCESSO_DELETAR,
+            icon: 'success'
+        });
+        await carregarPedidos();
     } catch (error) {
         console.error('Erro:', error);
-        M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || MENSAGENS.ERRO_DELETAR,
+            icon: 'error'
+        });
     }
 }

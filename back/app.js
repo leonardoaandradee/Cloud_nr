@@ -53,6 +53,7 @@ function checkAuth(req, res, next) {
 
   // Redirecionar para a página de login no FRONT (apenas para acesso direto pelo navegador)
   return res.redirect('https://humble-space-halibut-5gqpw5x4p5vwc7q76-3000.app.github.dev/login');
+  
 }
 
 // Middleware para proteger rotas usando JWT
