@@ -950,3 +950,55 @@ async function deletePedido(pedidoId) {
         });
     }
 }
+
+// Torna a função acessível globalmente para o onclick do HTML
+deletarPedido = deletePedido;
+window.deletarPedido = deletePedido;
+
+// Função mostrarDetalhesPedido
+async function mostrarDetalhesPedido(pedidoId) {
+    try {
+        const response = await fetchJWT(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao buscar detalhes do pedido');
+        const data = await response.json();
+        if (!data.sucesso) throw new Error('Erro ao buscar detalhes do pedido');
+        const pedido = data.dados;
+        // Preencher dados no modal
+        document.getElementById('numeroPedido').textContent = pedido.id;
+        document.getElementById('modalDataHora').textContent = formatarDataPedido(pedido.data_pedido);
+        document.getElementById('modalClienteNome').textContent = pedido.cliente_nome || 'N/A';
+        document.getElementById('modalClienteTelefone').textContent = pedido.cliente_telefone || 'N/A';
+        document.getElementById('modalClienteEndereco').textContent = pedido.endereco_entrega || 'N/A';
+        document.getElementById('modalClienteComplemento').textContent = pedido.complemento || 'Sem complemento';
+        document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
+        // Preencher tabela de itens
+        const tbody = document.getElementById('modalItensPedido');
+        tbody.innerHTML = '';
+        if (Array.isArray(pedido.itens)) {
+            pedido.itens.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.sabor || 'N/A'}</td>
+                    <td>${item.tamanho || 'N/A'}</td>
+                    <td>${item.quantidade}</td>
+                    <td>R$ ${Number(item.preco_unitario).toFixed(2)}</td>
+                    <td>R$ ${Number(item.subtotal).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        // Abrir o modal
+        const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+        modalInstance.open();
+    } catch (e) {
+        console.error('Erro ao executar mostrarDetalhesPedido:', e);
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao buscar detalhes do pedido',
+            icon: 'error'
+        });
+    }
+}
+// Torna a função acessível globalmente para o onclick do HTML
+window.mostrarDetalhesPedido = mostrarDetalhesPedido;
