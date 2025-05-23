@@ -88,8 +88,11 @@ async function buscarCep() {
         const data = await response.json();
 
         if (data.erro) {
-            const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
-            modalInstance.open();
+            Swal.fire({
+                title: 'CEP não encontrado',
+                text: 'Por favor, insira os dados manualmente.',
+                icon: 'warning'
+            });
             return;
         }
 
@@ -97,12 +100,16 @@ async function buscarCep() {
         document.getElementById('clientBairro').value = data.bairro;
         document.getElementById('clientCidade').value = data.localidade;
         document.getElementById('clientEstado').value = data.uf;
-        
         M.updateTextFields();
     } catch (error) {
         console.error('Erro ao buscar CEP:', error);
         const modalInstance = M.Modal.getInstance(document.getElementById('modalCepNaoEncontrado'));
         modalInstance.open();
+        Swal.fire({
+            title: 'Erro',
+            text: 'Não foi possível buscar o CEP. Por favor, insira os dados manualmente.',
+            icon: 'error'
+        });
     }
 }
 
@@ -213,8 +220,15 @@ async function loadClientOrders(clientId) {
 }
 
 async function deleteClient(clientId) {
-    if (!confirm(MENSAGENS.CONFIRMA_DELETAR)) return;
-    
+    const result = await Swal.fire({
+        title: 'Confirmar exclusão',
+        text: 'Tem certeza que deseja excluir este cliente?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
     try {
         const response = await fetchJWT(`${CONFIG.API_URL}/clientes/${clientId}`, {
             method: 'DELETE'
@@ -228,27 +242,35 @@ async function deleteClient(clientId) {
         }
         const data = await response.json();
         M.toast({html: data.mensagem || MENSAGENS.SUCESSO_DELETAR});
+        Swal.fire({
+            title: 'Sucesso!',
+            text: data.mensagem || MENSAGENS.SUCESSO_DELETAR,
+            icon: 'success'
+        });
         await loadClients();
     } catch (error) {
         console.error('Erro:', error);
         M.toast({html: error.message || MENSAGENS.ERRO_DELETAR});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || MENSAGENS.ERRO_DELETAR,
+            icon: 'error'
+        });
     }
 }
 
 async function showClientHistory(clientId) {
     try {
-        const response = await fetch(`${CONFIG.API_URL}/clientes/${clientId}/historico`);
+        const response = await fetchJWT(`${CONFIG.API_URL}/clientes/${clientId}/historico`);
+        if (tratar401(response)) return;
+        if (!response.ok) throw new Error('Erro ao carregar histórico');
         const data = await response.json();
-        
         if (!data.sucesso) {
             throw new Error(data.erro || 'Erro ao carregar histórico');
         }
-
         const historicoList = document.getElementById('historicoList');
         const clienteNome = document.getElementById('clienteHistoricoNome');
-        
         clienteNome.textContent = `Cliente: ${data.cliente_nome}`;
-        
         if (data.historico && data.historico.length > 0) {
             historicoList.innerHTML = data.historico.map(pedido => `
                 <tr>
@@ -262,12 +284,16 @@ async function showClientHistory(clientId) {
         } else {
             historicoList.innerHTML = '<tr><td colspan="3" class="center-align">Cliente sem pedidos registrados</td></tr>';
         }
-
         const modal = M.Modal.getInstance(document.getElementById('modalHistoricoPedidos'));
         modal.open();
     } catch (error) {
         console.error('Erro ao carregar histórico:', error);
         M.toast({html: 'Erro ao carregar histórico de pedidos'});
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || 'Erro ao carregar histórico de pedidos',
+            icon: 'error'
+        });
     }
 }
 
@@ -277,4 +303,14 @@ document.addEventListener('DOMContentLoaded', function() {
     M.Modal.init(modalElem);
     const modalHistorico = document.getElementById('modalHistoricoPedidos');
     M.Modal.init(modalHistorico);
+    // Implementação da máscara de telefone
+    const phoneInput = document.getElementById('clientPhone');
+    if (phoneInput) {
+        IMask(phoneInput, { mask: '+55 (00) 0 0000-0000' });
+    }
+    // Implementação da máscara de CEP
+    const cepInput = document.getElementById('clientCep');
+    if (cepInput) {
+        IMask(cepInput, { mask: '00000-000' });
+    }
 });
