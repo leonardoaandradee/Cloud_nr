@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+  <title><%= title %></title>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- IMask -->
+  <script src="https://unpkg.com/imask"></script>
+</head>
+
+<body>
+  <!-- Barra de navegação -->
+  <nav class="white" role="navigation">
+    <div class="nav-wrapper container">
+      <a href="/" class="logo-container">
+        <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" class="nav-logo" />
+      </a>
+      <ul class="right hide-on-med-and-down">
+        <li>
+            <a href="/" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">home</i>
+            Home</a>
+        </li>
+        <li>
+            <a href="/produtos" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
+            Produtos</a>
+        </li>
+        <li>
+            <a href="/clientes" class="nav-item-off nav-item-bright" style="color: #900404">
+              <i class="small material-icons" style="vertical-align: middle;">account_box</i>
+            Clientes</a>
+        </li>
+        <li>
+            <a href="/pedidos" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
+            Pedidos</a>
+        </li>
+      </ul>
+
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+    </div>
+  </nav>
+
+  <ul id="nav-mobile" class="sidenav">
+    <li><a href="/produtos">Produtos</a></li>
+    <li><a href="/clientes">Clientes</a></li>
+    <li><a href="/pedidos">Pedidos</a></li>
+  </ul>
+
+  <div class="container">
+    <div class="row">
+      <form id="registrationForm" class="col s12">
+        <div class="row">
+         
+          <h5><b>Clientes</b></h5>
+      
+          <div class="input-field col s6">
+            <input id="clientName" name="nome" type="text" class="validate">
+            <label for="clientName"><span style="color: red;">* </span><b>Nome:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientEmail" name="email" type="email" class="validate">
+            <label for="clientEmail"><b>Email:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientPhone" name="telefone" type="text" class="validate">
+            <label for="clientPhone"><span style="color: red;">* </span><b>Telefone:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientCep" name="cep" type="text" class="validate" onblur="buscarCep()">
+            <label for="clientCep"><b>CEP:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientRua" name="rua" type="text" class="validate">
+            <label for="clientRua"><b>Rua:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientBairro" name="bairro" type="text" class="validate">
+            <label for="clientBairro"><b>Bairro:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientCidade" name="cidade" type="text" class="validate">
+            <label for="clientCidade"><b>Cidade:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <input id="clientEstado" name="estado" type="text" class="validate">
+            <label for="clientEstado"><b>Estado:</b></label>
+          </div>
+
+          <div class="input-field col s12">
+            <input id="clientComplemento" name="complemento" type="text" class="validate">
+            <label for="clientComplemento"><b>Complemento:</b></label>
+          </div>
+
+          <div class="input-field col s6">
+            <button class="btn waves-effect green btn-small" type="button" onclick="saveClient()">Salvar
+              <i class="material-icons right">send</i>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <table class="striped">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>CEP</th>
+            <th>Endereço</th>
+            <th>Editar/Deletar/Histórico</th>
+          </tr>
+        </thead>
+        <tbody id="clients-list">
+          <!-- Clientes serão carregados aqui via JavaScript -->
+          <td>
+            <button onclick="editClient('${client.id}')" class="btn-small waves-effect waves-light green">
+              <i class="material-icons">edit</i>
+            </button>
+            <button onclick="deleteClient('${client.id}')" class="btn-small waves-effect waves-light red">
+              <i class="material-icons">delete</i>
+            </button>
+            <button onclick="showClientHistory('${client.id}')" class="btn-small waves-effect waves-light blue">
+              <i class="material-icons">history</i>
+            </button>
+          </td>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal CEP não encontrado -->
+  <div id="modalCepNaoEncontrado" class="modal modal-small" style="width: 35%; max-height: 40%;">
+    <div class="modal-content center-align">
+      <h5>CEP não localizado</h5>
+      <p>Insira os dados manualmente.</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+    </div>
+  </div>
+
+  <!-- Modal Histórico de Pedidos -->
+  <div id="modalHistoricoPedidos" class="modal">
+    <div class="modal-content">
+      <div class="center-align">
+        <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" style="height: 80px; margin-bottom: 10px;" />
+      </div>
+      <h5>Histórico de Pedidos</h5>
+      <div class="divider"></div>
+      <div class="section">
+        <h6 id="clienteHistoricoNome"></h6>
+        <table class="striped">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produtos</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="historicoList">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Fechar</a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/config.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="/js/materialize.js"></script>
+  <script src="/js/init.js"></script>
+  <script src="/js/clientes.js"></script>
+
+</body>
+</html>
