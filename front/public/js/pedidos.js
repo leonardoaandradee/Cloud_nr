@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar modals
     var modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
+    
+    // Carregar clientes para o cache
+    carregarClientes();
+
+    // Inicializar máscara do telefone
+    const phoneInput = document.getElementById('phoneSearch');
+    IMask(phoneInput, {
+        mask: '+55 (00) 0 0000-0000'
+    });
 });
 
 // Cache de dados global
@@ -389,7 +398,8 @@ async function deletarPedido(pedidoId) {
  * Funções de manipulação de pedidos
  */
 async function buscarCliente() {
-    const telefone = document.getElementById('phoneSearch').value.trim();
+    const telefoneComMascara = document.getElementById('phoneSearch').value.trim();
+    const telefone = telefoneComMascara.replace(/\D/g, '').slice(-11);
     console.log('Buscando cliente com telefone:', telefone);
     
     if (!telefone) {
@@ -403,7 +413,7 @@ async function buscarCliente() {
 
     try {
         const clienteEncontrado = Object.values(clientesData).find(
-            cliente => cliente.telefone === telefone
+            cliente => cliente.telefone.replace(/\D/g, '').slice(-11) === telefone
         );
 
         if (!clienteEncontrado) {
@@ -648,9 +658,10 @@ function calcularTotal() {
 }
 
 async function confirmarPedido() {
-    const telefone = document.getElementById('phoneSearch').value;
+    const telefoneComMascara = document.getElementById('phoneSearch').value.trim();
+    const telefone = telefoneComMascara.replace(/\D/g, '').slice(-11);
     const clienteEncontrado = Object.values(clientesData).find(
-        cliente => cliente.telefone === telefone
+        cliente => cliente.telefone.replace(/\D/g, '').slice(-11) === telefone
     );
     const endereco = document.getElementById('endereco').value;
     
@@ -1127,4 +1138,89 @@ async function editarPedido(pedidoId) {
             icon: 'error'
         });
     }
+}
+
+// Adicionar estas novas funções após as funções existentes
+
+async function abrirModalClientes() {
+    try {
+        await carregarClientesParaModal();
+        const modal = M.Modal.getInstance(document.getElementById('modalListaClientes'));
+        modal.open();
+        document.getElementById('filtroClientes').focus();
+    } catch (error) {
+        console.error('Erro ao abrir modal de clientes:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Não foi possível carregar a lista de clientes',
+            icon: 'error'
+        });
+    }
+}
+
+async function carregarClientesParaModal() {
+    try {
+        const tbody = document.getElementById('listaClientesModal');
+        tbody.innerHTML = '<tr><td colspan="4" class="center-align">Carregando...</td></tr>';
+
+        const clientesOrdenados = Object.values(clientesData).sort((a, b) => 
+            a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+        );
+
+        tbody.innerHTML = clientesOrdenados.map(cliente => {
+            // Formatar o telefone para exibição
+            const telefoneNumeros = cliente.telefone.replace(/\D/g, '');
+            const telefoneFormatado = telefoneNumeros.length === 11 
+                ? `+55 (${telefoneNumeros.slice(0,2)}) ${telefoneNumeros.slice(2,3)} ${telefoneNumeros.slice(3,7)}-${telefoneNumeros.slice(7)}`
+                : cliente.telefone;
+            
+            return `
+                <tr>
+                    <td>${cliente.nome || ''}</td>
+                    <td>${telefoneFormatado}</td>
+                    <td>${formatarEnderecoCompleto(cliente)}</td>
+                    <td>
+                        <button onclick="selecionarCliente('${cliente.telefone}')" 
+                                class="btn-small waves-effect waves-light green">
+                            <i class="material-icons">check</i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar clientes para modal:', error);
+        throw error;
+    }
+}
+
+function filtrarClientes() {
+    const filtro = document.getElementById('filtroClientes').value.toLowerCase();
+    const linhas = document.getElementById('listaClientesModal').getElementsByTagName('tr');
+
+    Array.from(linhas).forEach(linha => {
+        const texto = linha.textContent.toLowerCase();
+        linha.style.display = texto.includes(filtro) ? '' : 'none';
+    });
+}
+
+function selecionarCliente(telefone) {
+    // Formatar o telefone antes de inserir no campo
+    const phoneInput = document.getElementById('phoneSearch');
+    const phoneRaw = telefone.replace(/\D/g, '');
+    const phoneMasked = `+55 (${phoneRaw.slice(0,2)}) ${phoneRaw.slice(2,3)} ${phoneRaw.slice(3,7)}-${phoneRaw.slice(7)}`;
+    
+    // Limpar e definir o valor com a máscara
+    phoneInput.value = '';
+    phoneInput.value = phoneMasked;
+    
+    const modal = M.Modal.getInstance(document.getElementById('modalListaClientes'));
+    modal.close();
+    
+    // Ativar o label
+    M.updateTextFields();
+    
+    // Buscar cliente
+    buscarCliente();
 }

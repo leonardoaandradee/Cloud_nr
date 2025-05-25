@@ -163,13 +163,17 @@
                         <!-- Campo de telefone -->
                         <div class="input-field col s12">
                             <i class="material-icons prefix">phone</i>
-                            <input type="text" id="phoneSearch" class="validate" maxlength="11" 
-                                   pattern="\d{10,11}"
-                                   title="Digite apenas números (DDD + número). Ex: 11999999999">
+                            <input type="text" id="phoneSearch" class="validate">
                             <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
-                            <span class="helper-text" data-error="Formato inválido" data-success="Formato válido">
-                                Digite o telefone do cliente (apenas números) e pressione Enter
+                            <span class="helper-text">
+                                Digite o telefone do cliente ou use o botão de busca
                             </span>
+                            <!-- Novo botão para listar clientes -->
+                            <button type="button" class="btn-floating btn-small waves-effect waves-light blue" 
+                                    style="position: absolute; right: -45px; top: 10px;"
+                                    onclick="abrirModalClientes()">
+                                <i class="material-icons">people</i>
+                            </button>
                         </div>
 
                         <!-- Container para os cards (info cliente e mapa) -->
@@ -387,6 +391,36 @@
                 <i class="material-icons right">check_circle</i>
                 OK
             </a>
+        </div>
+    </div>
+
+    <!-- Modal de Lista de Clientes -->
+    <div id="modalListaClientes" class="modal modal-fixed-footer">
+        <div class="modal-content">
+            <h4>Selecionar Cliente</h4>
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">search</i>
+                    <input type="text" id="filtroClientes" onkeyup="filtrarClientes()">
+                    <label for="filtroClientes">Buscar cliente...</label>
+                </div>
+            </div>
+            <table class="striped highlight">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Endereço</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="listaClientesModal">
+                    <!-- Clientes serão carregados aqui -->
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Fechar</a>
         </div>
     </div>
 
