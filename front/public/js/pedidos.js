@@ -18,6 +18,7 @@ let clientesIds = [];
 let produtosData = {};
 let map = null;
 let marker = null;
+let editandoPedidoId = null; // Adicionar variável global para controle de edição
 
 /**
  * Funções de inicialização
@@ -701,40 +702,75 @@ async function confirmarPedido() {
         itens: itens,
         preco_total: parseFloat(document.getElementById('totalPedido').textContent),
         endereco_entrega: endereco,
-        status: 'Pendente'
+        status: editandoPedidoId ? 'Em Preparo' : 'Pendente'
     };
 
     try {
-        const response = await fetch(`${CONFIG.API_URL}/pedidos`, {
-            method: 'POST',
+        const url = editandoPedidoId 
+            ? `${CONFIG.API_URL}/pedidos/${editandoPedidoId}`
+            : `${CONFIG.API_URL}/pedidos`;
+        
+        const method = editandoPedidoId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedido)
         });
 
-        if (!response.ok) throw new Error('Erro ao criar pedido');
+        if (!response.ok) throw new Error(`Erro ao ${editandoPedidoId ? 'atualizar' : 'criar'} pedido`);
 
         const result = await response.json();
         
-        // Exibir modal com detalhes do pedido
-        await exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
+        // Exibir modal com detalhes do pedido ou mensagem de sucesso
+        await exibirModalPedido(
+            editandoPedidoId || result.id, 
+            clienteEncontrado, 
+            pedido,
+            itens
+        );
+
+        // Reabilitar campo de telefone
+        document.getElementById('phoneSearch').disabled = false;
         
-        // Não chamar limparFormularioCompleto aqui
-        // Será chamado no onCloseEnd do modal
+        // Limpar o ID do pedido em edição
+        editandoPedidoId = null;
         
         // Recarregar lista de pedidos
         await carregarPedidos();
+
     } catch (error) {
         console.error('Erro:', error);
+        document.getElementById('phoneSearch').disabled = false;
         Swal.fire({
             title: 'Erro!',
-            text: 'Erro ao criar pedido',
+            text: `Erro ao ${editandoPedidoId ? 'atualizar' : 'criar'} pedido`,
             icon: 'error'
         });
     }
 }
 
+// Mover esta função para antes de confirmarPedido
 function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
-    // Formatar data e hora atual
+    // Se for uma atualização, mostrar mensagem de sucesso e limpar formulário
+    if (editandoPedidoId) {
+        Swal.fire({
+            title: 'Pedido Atualizado!',
+            text: `Pedido Nº ${numeroPedido} atualizado com sucesso!`,
+            icon: 'success',
+            confirmButtonColor: '#28a745'
+        }).then((result) => {
+            // Após fechar o SweetAlert, limpar o formulário
+            limparFormularioCompleto();
+            // Recarregar lista de pedidos
+            carregarPedidos();
+            // Mostrar tabela de pedidos
+            document.getElementById('pedidosTable').style.display = 'block';
+        });
+        return;
+    }
+
+    // Resto do código existente para novos pedidos
     const agora = new Date();
     const dataFormatada = agora.toLocaleDateString('pt-BR', { 
         day: '2-digit',
@@ -746,7 +782,6 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
         minute: '2-digit'
     });
 
-    // Preencher dados do pedido no modal
     document.getElementById('numeroPedido').textContent = numeroPedido;
     document.getElementById('modalDataHora').textContent = `${dataFormatada} ${horaFormatada}`;
     document.getElementById('modalClienteNome').textContent = cliente.nome;
@@ -755,7 +790,6 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
     document.getElementById('modalClienteComplemento').textContent = cliente.complemento || 'Sem complemento';
     document.getElementById('modalTotalPedido').textContent = pedido.preco_total.toFixed(2);
 
-    // Preencher tabela de itens
     const tbody = document.getElementById('modalItensPedido');
     tbody.innerHTML = '';
     
@@ -771,21 +805,27 @@ function exibirModalPedido(numeroPedido, cliente, pedido, itens) {
         tbody.appendChild(tr);
     });
 
-    // Configurar o modal
-    const modalInstance = M.Modal.getInstance(document.getElementById('detalhePedidoModal'));
+    const modalElement = document.getElementById('detalhePedidoModal');
+    const modalInstance = M.Modal.getInstance(modalElement) || M.Modal.init(modalElement);
     
-    // Configurar evento para quando o modal for fechado
     modalInstance.options.onCloseEnd = () => {
         limparFormularioCompleto();
-        carregarPedidos(); // Recarrega a lista de pedidos
+        carregarPedidos();
     };
     
-    // Abrir o modal
     modalInstance.open();
 }
 
-// Nova função para limpeza completa do formulário
+// Modificar também a função limparFormularioCompleto
 function limparFormularioCompleto() {
+    // Reabilitar campo de telefone
+    const phoneInput = document.getElementById('phoneSearch');
+    phoneInput.disabled = false;
+    phoneInput.value = '';
+    
+    // Limpar ID de edição
+    editandoPedidoId = null;
+    
     // Limpar campo de telefone
     document.getElementById('phoneSearch').value = '';
     
@@ -1012,6 +1052,7 @@ function togglePedidosList() {
 // Adicionar nova função para edição de pedido
 async function editarPedido(pedidoId) {
     try {
+        editandoPedidoId = pedidoId; // Salvar o ID do pedido sendo editado
         const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
         const data = await response.json();
         
@@ -1019,9 +1060,10 @@ async function editarPedido(pedidoId) {
 
         const pedido = data.dados;
         
-        // Preencher dados do cliente e ativar o label
+        // Preencher e desabilitar campo de telefone
         const phoneInput = document.getElementById('phoneSearch');
         phoneInput.value = pedido.cliente_telefone;
+        phoneInput.disabled = true; // Desabilitar edição do telefone
         const phoneLabel = document.querySelector('label[for="phoneSearch"]');
         phoneLabel.classList.add('active');
         
@@ -1078,6 +1120,7 @@ async function editarPedido(pedidoId) {
 
     } catch (error) {
         console.error('Erro ao editar pedido:', error);
+        limparFormularioCompleto();
         Swal.fire({
             title: 'Erro!',
             text: 'Erro ao carregar dados do pedido para edição',

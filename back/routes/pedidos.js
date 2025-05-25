@@ -46,14 +46,15 @@ router.get('/:id', (req, res) => {
 // PUT - Atualiza pedido
 router.put('/:id', (req, res) => {
     try {
-        if (req.body.status) {
+        if (req.body.status && !req.body.itens) {
             // Se apenas o status está sendo atualizado
             pedidosModel.updateStatus(req.params.id, req.body.status, res);
         } else {
-            // Atualização completa do pedido
-            const { quantidade, preco_total, endereco_entrega, status } = req.body;
+            // Atualização completa do pedido incluindo itens
+            const { clientes_id, itens, preco_total, endereco_entrega, status } = req.body;
             const pedidoAtualizado = { 
-                quantidade, 
+                clientes_id,
+                itens,
                 preco_total, 
                 endereco_entrega, 
                 status 

@@ -190,9 +190,13 @@ function updatePedido(id, pedido, res) {
 
         pedidosDB.run(
             `UPDATE pedidos 
-             SET preco_total = ?, endereco_entrega = ?, status = ?
+             SET clientes_id = ?,
+                 preco_total = ?, 
+                 endereco_entrega = ?, 
+                 status = ?
              WHERE id = ?`,
-            [pedido.preco_total, pedido.endereco_entrega, pedido.status || 'Pendente', id],
+            [pedido.clientes_id, pedido.preco_total, pedido.endereco_entrega, 
+             pedido.status || 'Pendente', id],
             function(err) {
                 if (err) {
                     pedidosDB.run('ROLLBACK');
