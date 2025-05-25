@@ -5,8 +5,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('../swagger');
 
 // Inicialização do app
 const app = express();
@@ -39,11 +37,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Configuração do Swagger - deve vir ANTES das rotas
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-themes@3.0.0/themes/3.x/theme-material.css'
-}));
 
 // Importação das rotas
 const indexRouter = require('./routes/index');
