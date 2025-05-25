@@ -60,60 +60,64 @@
          
           <h5><b>Clientes</b></h5>
       
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientName" name="nome" type="text" class="validate">
             <label for="clientName"><span style="color: red;">* </span><b>Nome:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientEmail" name="email" type="email" class="validate">
             <label for="clientEmail"><b>Email:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientPhone" name="telefone" type="text" class="validate">
             <label for="clientPhone"><span style="color: red;">* </span><b>Telefone:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientCep" name="cep" type="text" class="validate" onblur="buscarCep()">
             <label for="clientCep"><b>CEP:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientRua" name="rua" type="text" class="validate">
             <label for="clientRua"><b>Rua:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientBairro" name="bairro" type="text" class="validate">
             <label for="clientBairro"><b>Bairro:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientCidade" name="cidade" type="text" class="validate">
             <label for="clientCidade"><b>Cidade:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12 m4">
             <input id="clientEstado" name="estado" type="text" class="validate">
             <label for="clientEstado"><b>Estado:</b></label>
           </div>
 
-          <div class="input-field col s12">
+          <div class="input-field col s12 m4">
             <input id="clientComplemento" name="complemento" type="text" class="validate">
             <label for="clientComplemento"><b>Complemento:</b></label>
           </div>
 
-          <div class="input-field col s6">
+          <div class="input-field col s12">
             <button class="btn waves-effect green btn-small" type="button" onclick="saveClient()">Salvar
               <i class="material-icons right">send</i>
+            </button>
+            <button class="btn waves-effect blue btn-small" type="button" onclick="toggleClientesList()">
+              <i class="material-icons left">list</i>
+              Exibir Cadastrados
             </button>
           </div>
         </div>
       </form>
 
-      <table class="striped">
+      <table class="striped" id="clientesTable" style="display: none;">
         <thead>
           <tr>
             <th>Nome</th>
@@ -177,9 +181,39 @@
       </div>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Fechar</a>
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">
+        <i class="material-icons right">check_circle</i>
+        OK
+      </a>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer class="page-footer grey lighten-4" style="margin-top: 20px;">
+    <div class="container">
+      <div class="row" style="margin-bottom: 0;">
+        <div class="col s12" style="line-height: 0.8;">
+          <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+            <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">info</i>
+            Sistema para gerenciamento de produtos, clientes e pedidos de pizzaria.
+          </p>
+          <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+            <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
+            Desenvolvido com Node.js, Express, SQLite3, API Open Street Map e API Via Cep.
+          </p>
+          <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+            <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>
+            Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright" style="padding: 5px 0;">
+      <div class="container black-text" style="font-size: 0.7rem;">
+        © 2025 Pizza Show
+      </div>
+    </div>
+  </footer>
 
   <!-- Scripts -->
   <script src="/js/config.js"></script>

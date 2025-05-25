@@ -26,11 +26,12 @@
             padding: 5px 0 !important;
         }
         .produto-item .input-field {
-            margin-top: 0;
+            margin-top: 25px;  /* Espaço para o label */
             margin-bottom: 0;
             position: relative;
         }
-        .produto-item .input-field input {
+        .produto-item .input-field input,
+        .produto-item .input-field .browser-default {
             margin-bottom: 0;
             height: 2rem;
             padding-left: 5px;
@@ -38,31 +39,11 @@
         }
         .produto-item .input-field label {
             position: absolute;
-            top: -15px;
+            top: -25px;
             font-size: 0.8rem;
-            color: #000; /* Alterado de #666 para #000 */
+            color: #000;
             background: transparent;
-            transform: translateY(-14px); /* Mantém label sempre elevado */
-        }
-        /* Remove a transformação baseada no placeholder */
-        .produto-item .input-field input:focus + label,
-        .produto-item .input-field input:not(:placeholder-shown) + label {
-            transform: translateY(-14px);
-            font-size: 0.8rem;
-        }
-        .produto-item .browser-default {
-            height: 2rem;
-            margin-top: 5px;
-        }
-        .produto-item .btn-small {
-            padding: 0 10px;
-            height: 2rem;
-            line-height: 2rem;
-            margin-top: 5px;
-        }
-        .produto-item .btn-small i {
-            font-size: 1.2rem;
-            line-height: 2rem;
+            font-weight: normal;
         }
         .produto-item .categoria-display,
         .produto-item .preco-unitario,
@@ -110,6 +91,20 @@
 
         #detalhePedidoModal .divider {
             margin: 10px 0;       /* Reduz o espaçamento do divider */
+        }
+
+        .pedido-acoes .btn-small {
+            margin: 0 2px;
+        }
+        
+        .pedido-acoes .btn-small i {
+            font-size: 1.1rem;
+            line-height: inherit;
+        }
+        
+        /* Espaçamento entre os botões de ação */
+        .pedido-acoes {
+            white-space: nowrap;
         }
     </style>
     <!-- SweetAlert2 -->
@@ -160,16 +155,21 @@
         <div class="row">
             <form id="orderForm" class="col s12">
                 <div class="row">
-                
+                    
                     <h5><b>Pedidos</b></h5>
                     
                     <!-- Container para telefone e info do cliente -->
                     <div class="col s12">
                         <!-- Campo de telefone -->
                         <div class="input-field col s12">
-                            <input type="text" id="phoneSearch" class="validate">
+                            <i class="material-icons prefix">phone</i>
+                            <input type="text" id="phoneSearch" class="validate" maxlength="11" 
+                                   pattern="\d{10,11}"
+                                   title="Digite apenas números (DDD + número). Ex: 11999999999">
                             <label for="phoneSearch"><span style="color: red;">* </span>Telefone do Cliente</label>
-                            <small class="helper-text">Digite o telefone do cliente e pressione Enter</small>
+                            <span class="helper-text" data-error="Formato inválido" data-success="Formato válido">
+                                Digite o telefone do cliente (apenas números) e pressione Enter
+                            </span>
                         </div>
 
                         <!-- Container para os cards (info cliente e mapa) -->
@@ -209,32 +209,47 @@
                     <!-- Produtos -->
                     <div id="produtosList" class="col s12">
                         <div class="row produto-item">
+                            <!-- Sabor -->
                             <div class="input-field col s3">
+                                <label>Sabor:</label>
                                 <select class="sabor-select browser-default" required>
                                     <option value="" disabled selected>Escolha o sabor</option>
                                 </select>
                             </div>
+
+                            <!-- Categoria -->
                             <div class="input-field col s2">
-                                <input type="text" class="categoria-display" readonly placeholder=" ">
-                                <label>Categoria</label>
+                                <input type="text" class="categoria-display" readonly>
+                                <label>Categoria:</label>
                             </div>
+
+                            <!-- Tamanho -->
                             <div class="input-field col s2">
+                                <label>Tamanho:</label>
                                 <select class="tamanho-select browser-default" required>
-                                    <option value="" disabled selected>Tamanho</option>
+                                    <option value="" disabled selected>Escolha o tamanho</option>
                                 </select>
                             </div>
+
+                            <!-- Quantidade -->
                             <div class="input-field col s1">
-                                <input type="number" class="quantidade" min="1" value="1" placeholder=" ">
-                                <label>Qtd</label>
+                                <input type="number" class="quantidade" min="1" value="1">
+                                <label>Qtd:</label>
                             </div>
+
+                            <!-- Preço Unitário -->
                             <div class="input-field col s2">
-                                <input type="text" class="preco-unitario" readonly placeholder=" ">
-                                <label>Preço Unit. (R$)</label>
+                                <input type="text" class="preco-unitario" readonly>
+                                <label>Preço Unit. (R$):</label>
                             </div>
+
+                            <!-- Subtotal -->
                             <div class="input-field col s1">
-                                <input type="text" class="subtotal" readonly placeholder=" ">
-                                <label>Total (R$)</label>
+                                <input type="text" class="subtotal" readonly>
+                                <label>Total (R$):</label>
                             </div>
+
+                            <!-- Botão Remover -->
                             <div class="input-field col s1">
                                 <button type="button" class="btn-small waves-effect waves-light red" onclick="removeProduto(this)">
                                     <i class="material-icons">delete</i>
@@ -260,26 +275,30 @@
                     </div>
 
                     <!-- Botão Confirmar -->
-                    <div class="col s12 center-align" style="margin-top: 20px;">
+                    <div class="col s12" style="margin-top: 20px;">
                         <button class="btn waves-effect waves-light green btn-small" type="submit" id="confirmarPedido">
                             Confirmar Pedido
                             <i class="material-icons right">send</i>
+                        </button>
+                        <button class="btn waves-effect blue btn-small" type="button" onclick="togglePedidosList()">
+                            <i class="material-icons left">list</i>
+                            Exibir Pedidos
                         </button>
                     </div>
                 </div>
             </form>
 
             <!-- Listagem de Pedidos -->
-            <div class="row" style="margin-top: 40px;">
-                <h5><b>Histórico de Pedidos</b></h5>
-                <table class="striped">
+            <div class="row" id="pedidosTable" style="display: none;">
+                <table class="striped responsive-table">
                     <thead>
                         <tr>
                             <th>Nº Pedido</th>
                             <th>Data/Hora</th>
                             <th>Cliente</th>
+                            <th>Descrição</th>
                             <th>Status</th>
-                            <th>Ações</th>
+                            <th>Editar / Deletar</th>
                         </tr>
                     </thead>
                     <tbody id="pedidos-list">
@@ -362,6 +381,7 @@
                 <h5><b>Total: R$ <span id="modalTotalPedido"></span></b></h5>
             </div>
         </div>
+        <!-- Footer do modal -->
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">
                 <i class="material-icons right">check_circle</i>

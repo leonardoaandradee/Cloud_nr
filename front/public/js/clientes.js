@@ -96,6 +96,30 @@ async function buscarCep() {
 }
 
 async function saveClient() {
+    const nome = document.getElementById('clientName').value.trim();
+    const telefone = document.getElementById('clientPhone').value.trim();
+
+    // Validação dos campos obrigatórios
+    if (!nome) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Campo Obrigatório',
+            text: 'Por favor, preencha o nome do cliente!',
+            confirmButtonColor: '#900404'
+        });
+        return;
+    }
+
+    if (!telefone) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Campo Obrigatório',
+            text: 'Por favor, preencha o telefone do cliente!',
+            confirmButtonColor: '#900404'
+        });
+        return;
+    }
+
     const form = document.getElementById('registrationForm');
     const formData = {
         nome: form.nome.value.trim().toUpperCase(),
@@ -234,6 +258,16 @@ async function showClientHistory(clientId) {
     } catch (error) {
         console.error('Erro ao carregar histórico:', error);
         M.toast({html: 'Erro ao carregar histórico de pedidos'});
+    }
+}
+
+function toggleClientesList() {
+    const table = $('#clientesTable');
+    if (table.is(':visible')) {
+        table.hide();
+    } else {
+        loadClients(); // Recarrega a lista antes de exibir
+        table.show();
     }
 }
 

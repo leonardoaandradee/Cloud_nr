@@ -26,7 +26,7 @@ function inicializarComponentes() {
     M.FormSelect.init(document.querySelectorAll('select'));
     carregarClientes();
     carregarProdutos();
-    carregarPedidos();
+    carregarPedidos(); // Garantir que esta linha está presente
 }
 
 function configurarEventListeners() {
@@ -38,12 +38,58 @@ function configurarEventListeners() {
         }
     });
     
-    document.getElementById('orderForm').addEventListener('submit', confirmarPedido);
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const telefone = document.getElementById('phoneSearch').value.trim();
+        if (!telefone) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Campo Obrigatório',
+                text: 'Por favor, informe o telefone do cliente!',
+                confirmButtonColor: '#900404'
+            });
+            return;
+        }
+
+        // Validar se há itens no pedido
+        const items = document.querySelectorAll('.produto-item');
+        let hasValidItems = false;
+
+        items.forEach(item => {
+            const sabor = item.querySelector('.sabor-select').value;
+            const quantidade = item.querySelector('.quantidade').value;
+            if (sabor && quantidade > 0) {
+                hasValidItems = true;
+            }
+        });
+
+        if (!hasValidItems) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Pedido Incompleto',
+                text: 'Por favor, adicione pelo menos um item ao pedido!',
+                confirmButtonColor: '#900404'
+            });
+            return;
+        }
+
+        // Validar endereço de entrega
+        const endereco = document.getElementById('endereco').value;
+        if (!endereco) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Campo Obrigatório',
+                text: 'Por favor, selecione o endereço de entrega!',
+                confirmButtonColor: '#900404'
+            });
+            return;
+        }
+
+        confirmarPedido();
+    });
 }
 
-/**
- * Funções de carregamento de dados
- */
 async function carregarClientes() {
     try {
         console.log('Iniciando carregamento de clientes...');
@@ -107,6 +153,7 @@ async function carregarProdutos() {
     }
 }
 
+// Ajustar a função carregarPedidos para garantir que está formatando os dados corretamente
 async function carregarPedidos() {
     try {
         const response = await fetch(`${CONFIG.API_URL}/pedidos`);
@@ -117,35 +164,53 @@ async function carregarPedidos() {
         }
 
         const tbody = document.getElementById('pedidos-list');
+        if (!tbody) {
+            console.error('Elemento pedidos-list não encontrado');
+            return;
+        }
+
         tbody.innerHTML = '';
 
-        data.dados.forEach(pedido => {
-            const row = document.createElement('tr');
-            const dataFormatada = formatarDataPedido(pedido.data_pedido);
-            const status = pedido.status || 'Pendente';
-            const telefone = pedido.cliente_telefone || 'Não informado';
+        if (!data.dados || data.dados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="center-align">Nenhum pedido encontrado</td></tr>';
+            return;
+        }
 
+        const pedidosOrdenados = data.dados.sort((a, b) => 
+            new Date(b.data_pedido) - new Date(a.data_pedido)
+        );
+
+        pedidosOrdenados.forEach(pedido => {
+            const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="pedido-id">
-                    <a href="#" 
-                       onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
+                    <a href="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
                        class="blue-text text-darken-2">
-                        <b>N.${pedido.id}</b>
+                        <b>Nº ${pedido.id}</b>
                     </a>
                 </td>
-                <td class="pedido-data">${dataFormatada}</td>
+                <td class="pedido-data">${formatarDataPedido(pedido.data_pedido)}</td>
                 <td class="pedido-cliente">
-                    <span class="cliente-nome">${pedido.cliente_nome}</span><br>
-                    <small class="cliente-telefone black-text">Telefone: ${telefone}</small>
+                    <b>${pedido.cliente_nome || 'Não informado'}</b><br>
+                    <small>Tel: ${pedido.cliente_telefone || 'N/A'}</small>
+                </td>
+                <td class="pedido-descricao">
+                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${pedido.itens || 'Sem itens'}
+                    </div>
                 </td>
                 <td class="pedido-status">
-                    <select class="browser-default status-select"
+                    <select class="browser-default status-select" 
                             onchange="atualizarStatus(${pedido.id}, this.value)">
-                        ${gerarOpcoesStatus(status)}
+                        ${gerarOpcoesStatus(pedido.status || 'Pendente')}
                     </select>
                 </td>
                 <td class="pedido-acoes center-align">
-                    <button class="btn-small waves-effect waves-light red"
+                    <button class="btn-small waves-effect waves-light green" 
+                            onclick="editarPedido(${pedido.id})">
+                        <i class="material-icons">edit</i>
+                    </button>
+                    <button class="btn-small waves-effect waves-light red" 
                             onclick="deletarPedido(${pedido.id})">
                         <i class="material-icons">delete</i>
                     </button>
@@ -153,6 +218,8 @@ async function carregarPedidos() {
             `;
             tbody.appendChild(row);
         });
+
+        M.FormSelect.init(document.querySelectorAll('.status-select'));
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
         Swal.fire({
@@ -161,6 +228,16 @@ async function carregarPedidos() {
             icon: 'error'
         });
     }
+}
+
+// Adicionar função auxiliar para formatar descrição do pedido
+function formatarDescricaoPedido(itens) {
+    if (!itens || !Array.isArray(itens) || itens.length === 0) {
+        return 'Sem itens';
+    }
+    return itens.map(item => 
+        `${item.sabor || 'N/A'} (${item.quantidade || 0}x - ${item.tamanho || 'N/A'})`
+    ).join(', ');
 }
 
 async function mostrarDetalhesPedido(pedidoId) {
@@ -569,9 +646,7 @@ function calcularTotal() {
     document.getElementById('totalPedido').textContent = total.toFixed(2);
 }
 
-async function confirmarPedido(event) {
-    event.preventDefault();
-    
+async function confirmarPedido() {
     const telefone = document.getElementById('phoneSearch').value;
     const clienteEncontrado = Object.values(clientesData).find(
         cliente => cliente.telefone === telefone
@@ -607,7 +682,6 @@ async function confirmarPedido(event) {
             quantidade: quantidade,
             preco_unitario: precoUnitario,
             subtotal: subtotal,
-            // Adicionar informações para o modal
             sabor: saborSelect.options[saborSelect.selectedIndex].text,
             tamanho: tamanhoSelect.value
         });
@@ -626,7 +700,8 @@ async function confirmarPedido(event) {
         clientes_id: clienteEncontrado.id,
         itens: itens,
         preco_total: parseFloat(document.getElementById('totalPedido').textContent),
-        endereco_entrega: endereco
+        endereco_entrega: endereco,
+        status: 'Pendente'
     };
 
     try {
@@ -641,9 +716,13 @@ async function confirmarPedido(event) {
         const result = await response.json();
         
         // Exibir modal com detalhes do pedido
-        exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
+        await exibirModalPedido(result.id, clienteEncontrado, pedido, itens);
         
-        await carregarPedidos(); // Recarrega a lista de pedidos
+        // Não chamar limparFormularioCompleto aqui
+        // Será chamado no onCloseEnd do modal
+        
+        // Recarregar lista de pedidos
+        await carregarPedidos();
     } catch (error) {
         console.error('Erro:', error);
         Swal.fire({
@@ -719,11 +798,12 @@ function limparFormularioCompleto() {
         produtos.removeChild(produtos.lastChild);
     }
     
-    // Resetar primeiro item
-    const primeiroItem = produtos.firstChild;
+    // Resetar primeiro item - CORREÇÃO AQUI
+    const primeiroItem = produtos.querySelector('.produto-item');
     if (primeiroItem) {
         // Limpar e reinicializar selects
-        primeiroItem.querySelectorAll('select').forEach(select => {
+        const selects = primeiroItem.querySelectorAll('select');
+        selects.forEach(select => {
             select.innerHTML = select.classList.contains('sabor-select') 
                 ? '<option value="" disabled selected>Escolha o sabor</option>'
                 : '<option value="" disabled selected>Tamanho</option>';
@@ -731,16 +811,18 @@ function limparFormularioCompleto() {
         });
 
         // Limpar todos os inputs
-        primeiroItem.querySelectorAll('input').forEach(input => {
+        const inputs = primeiroItem.querySelectorAll('input');
+        inputs.forEach(input => {
             if (input.type === 'number') {
-                input.value = '1'; // Reseta quantidade para 1
+                input.value = '1';
             } else {
-                input.value = ''; // Limpa outros inputs
+                input.value = '';
             }
         });
 
         // Garantir que os labels permaneçam na posição correta
-        primeiroItem.querySelectorAll('label').forEach(label => {
+        const labels = primeiroItem.querySelectorAll('label');
+        labels.forEach(label => {
             if (label) {
                 label.classList.add('active');
             }
@@ -845,9 +927,8 @@ function configurarSelectsProduto(item, saboresCache) {
 
     // Verificar se o select já tem um valor selecionado
     const saborAtual = saborSelect.value;
-    const tamanhoAtual = tamanhoSelect.value;
-
-    // Configurar select de sabores apenas se não estiver selecionado
+    
+    // Configurar select de sabores
     if (!saborAtual) {
         saborSelect.innerHTML = '<option value="" disabled selected>Escolha o sabor</option>' +
             Object.entries(sabores).map(([id, produto]) => 
@@ -861,7 +942,8 @@ function configurarSelectsProduto(item, saboresCache) {
         const produto = sabores[this.value];
         
         if (produto) {
-            categoriaInput.value = selectedOption.dataset.categoria;
+            // Atualizar o campo categoria com o valor correto
+            categoriaInput.value = produto.categoria;
             
             tamanhoSelect.innerHTML = '<option value="" disabled selected>Escolha o tamanho</option>' +
                 produto.tamanhos.map(t => 
@@ -915,4 +997,91 @@ function gerarOpcoesStatus(statusAtual) {
             ${status}
          </option>`
     ).join('');
+}
+
+function togglePedidosList() {
+    const table = $('#pedidosTable');
+    if (table.is(':visible')) {
+        table.hide();
+    } else {
+        carregarPedidos(); // Recarrega a lista antes de exibir
+        table.show();
+    }
+}
+
+// Adicionar nova função para edição de pedido
+async function editarPedido(pedidoId) {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/pedidos/${pedidoId}`);
+        const data = await response.json();
+        
+        if (!data.sucesso) throw new Error('Erro ao carregar dados do pedido');
+
+        const pedido = data.dados;
+        
+        // Preencher dados do cliente e ativar o label
+        const phoneInput = document.getElementById('phoneSearch');
+        phoneInput.value = pedido.cliente_telefone;
+        const phoneLabel = document.querySelector('label[for="phoneSearch"]');
+        phoneLabel.classList.add('active');
+        
+        await buscarCliente(); // Isso irá carregar os dados do cliente e o mapa
+
+        // Limpar lista de produtos atual
+        const produtosList = document.getElementById('produtosList');
+        while (produtosList.children.length > 1) {
+            produtosList.removeChild(produtosList.lastChild);
+        }
+
+        // Adicionar itens do pedido
+        if (Array.isArray(pedido.itens)) {
+            pedido.itens.forEach((item, index) => {
+                if (index > 0) adicionarProdutoRow(); // Adiciona nova linha para itens após o primeiro
+                
+                const rows = document.querySelectorAll('.produto-item');
+                const currentRow = rows[index];
+                
+                // Selecionar sabor
+                const saborSelect = currentRow.querySelector('.sabor-select');
+                saborSelect.value = item.produtos_id;
+                M.FormSelect.init(saborSelect);
+                
+                // Disparar evento change para carregar categorias e tamanhos
+                const event = new Event('change');
+                saborSelect.dispatchEvent(event);
+                
+                // Aguardar um momento para que os tamanhos sejam carregados
+                setTimeout(() => {
+                    // Selecionar tamanho
+                    const tamanhoSelect = currentRow.querySelector('.tamanho-select');
+                    tamanhoSelect.value = item.tamanho;
+                    M.FormSelect.init(tamanhoSelect);
+                    
+                    // Atualizar quantidade
+                    currentRow.querySelector('.quantidade').value = item.quantidade;
+                    
+                    // Atualizar preços
+                    currentRow.querySelector('.preco-unitario').value = item.preco_unitario.toFixed(2);
+                    currentRow.querySelector('.subtotal').value = item.subtotal.toFixed(2);
+                }, 100);
+            });
+        }
+
+        // Atualizar total
+        document.getElementById('totalPedido').textContent = pedido.preco_total.toFixed(2);
+
+        // Ocultar tabela de pedidos
+        document.getElementById('pedidosTable').style.display = 'none';
+
+        // Rolar para o topo do formulário
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+        console.error('Erro ao editar pedido:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: 'Erro ao carregar dados do pedido para edição',
+            icon: 'error'
+        });
+    }
 }

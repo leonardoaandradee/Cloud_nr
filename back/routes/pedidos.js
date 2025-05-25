@@ -80,4 +80,22 @@ router.delete('/:id', (req, res) => {
     }
 });
 
+// GET - Histórico de pedidos
+router.get('/historico', async (req, res) => {
+    try {
+        const HistoricoPedidosModel = require('../models/historico-models.js');
+        const historico = await HistoricoPedidosModel.buscarTodosPedidos();
+        res.json({
+            sucesso: true,
+            dados: historico
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            sucesso: false,
+            erro: 'Erro ao buscar histórico', 
+            detalhes: error.message 
+        });
+    }
+});
+
 module.exports = router;

@@ -56,6 +56,45 @@ class HistoricoPedidosModel {
             });
         });
     }
+
+    // Adicionar novo método para buscar todos os pedidos
+    static async buscarTodosPedidos() {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    p.id,
+                    p.data_pedido,
+                    p.preco_total,
+                    c.nome as cliente_nome,
+                    json_group_array(
+                        json_object(
+                            'sabor', pr.sabor,
+                            'quantidade', ip.quantidade,
+                            'tamanho', pr.tamanho,
+                            'preco', ip.preco_unitario
+                        )
+                    ) as produtos
+                FROM pedidos p
+                JOIN clientes c ON p.clientes_id = c.id
+                JOIN itens_pedido ip ON p.id = ip.pedidos_id
+                JOIN produtos pr ON ip.produtos_id = pr.id
+                GROUP BY p.id
+                ORDER BY p.data_pedido DESC
+            `;
+            
+            db.all(sql, [], (err, rows) => {
+                if (err) {
+                    console.error('Erro ao buscar histórico:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => ({
+                        ...row,
+                        produtos: JSON.parse(row.produtos)
+                    })));
+                }
+            });
+        });
+    }
 }
 
 module.exports = HistoricoPedidosModel;

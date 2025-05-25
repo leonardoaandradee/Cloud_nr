@@ -77,6 +77,9 @@
                 </div>
                 <div class="card-content">
                   <p>Gerencie o catálogo de produtos.</p>
+                  <div class="collection" style="border: none; margin: 10px 0 0 0;">
+                    <span class="collection-item" style="padding: 5px;">Cadastrados<span class="new badge green" id="produtosBadge" data-badge-caption=""><%= contagens.totalProdutos %></span></span>
+                  </div>
                 </div>
                 <div class="card-action">
                   <a href="/produtos" class="red-text">Acessar Produtos</a>
@@ -92,6 +95,9 @@
                 </div>
                 <div class="card-content">
                   <p>Gerencie os dados dos clientes.</p>
+                  <div class="collection" style="border: none; margin: 10px 0 0 0;">
+                    <span class="collection-item" style="padding: 5px;">Cadastrados<span class="new badge green" id="clientesBadge" data-badge-caption=""><%= contagens.totalClientes %></span></span>
+                  </div>
                 </div>
                 <div class="card-action">
                   <a href="/clientes" class="red-text">Acessar Clientes</a>
@@ -107,6 +113,9 @@
                 </div>
                 <div class="card-content">
                   <p>Controle os pedidos realizados.</p>
+                  <div class="collection" style="border: none; margin: 10px 0 0 0;">
+                    <span class="collection-item" style="padding: 5px;">Realizados<span class="new badge green" id="pedidosBadge" data-badge-caption=""><%= contagens.totalPedidos %></span></span>
+                  </div>
                 </div>
                 <div class="card-action">
                   <a href="/pedidos" class="red-text">Acessar Pedidos</a>
@@ -147,5 +156,21 @@
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="/js/materialize.js"></script>
     <script src="/js/init.js"></script>
+    <script>
+      // Remover código anterior de atualização
+      function atualizarContadores() {
+        fetch('/contadores')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('produtosBadge').textContent = data.totalProdutos;
+                document.getElementById('clientesBadge').textContent = data.totalClientes;
+                document.getElementById('pedidosBadge').textContent = data.totalPedidos;
+            })
+            .catch(error => console.error('Erro ao atualizar contadores:', error));
+      }
+
+      // Atualizar a cada 30 segundos
+      setInterval(atualizarContadores, 30000);
+    </script>
   </body>
 </html>

@@ -11,62 +11,6 @@ const MENSAGENS = {
 
 let editingProductId = null;
 
-function mostrarErro(mensagem) {
-    Swal.fire({
-        title: 'Erro!',
-        text: mensagem,
-        icon: 'error'
-    });
-}
-
-function mostrarSucesso(mensagem) {
-    Swal.fire({
-        title: 'Sucesso!',
-        text: mensagem,
-        icon: 'success'
-    });
-}
-
-// Função para carregar a lista de produtos
-async function loadProducts() {
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/produtos`);
-        if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
-        
-        const { dados: products = [] } = await response.json();
-        
-        // Ordenar produtos por sabor em ordem alfabética
-        products.sort((a, b) => a.sabor.localeCompare(b.sabor));
-        
-        const productsList = document.getElementById('products-list');
-        
-        productsList.innerHTML = products.length === 0 
-            ? '<tr><td colspan="6">Nenhum produto encontrado</td></tr>'
-            : products.map(product => `
-                <tr>
-                    <td>${product.sabor}</td>
-                    <td>${product.descricao || ''}</td>
-                    <td>${product.categoria || ''}</td>
-                    <td>${product.tamanho}</td>
-                    <td>R$ ${parseFloat(product.preco).toFixed(2)}</td>
-                    <td>
-                        <button onclick="editProduct(${product.id})" class="btn-small waves-effect waves-light green">
-                            <i class="material-icons">edit</i>
-                        </button>
-                        <button onclick="deleteProduct(${product.id})" class="btn-small waves-effect waves-light red">
-                            <i class="material-icons">delete</i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-    } catch (error) {
-        console.error(MENSAGENS.ERRO_CARREGAR, error);
-        mostrarErro(MENSAGENS.ERRO_CARREGAR);
-        document.getElementById('products-list').innerHTML = 
-            '<tr><td colspan="6">Erro ao carregar produtos</td></tr>';
-    }
-}
-
 // Função para salvar ou atualizar um produto
 async function saveProduct() {
     const form = document.getElementById('registrationForm');
@@ -100,7 +44,7 @@ async function saveProduct() {
         mostrarSucesso(data.mensagem || MENSAGENS.SUCESSO_SALVAR);
         form.reset();
         editingProductId = null;
-        await loadProducts();
+        await loadProdutos();
     } catch (error) {
         console.error('Erro:', error);
         mostrarErro(error.message || MENSAGENS.ERRO_SALVAR);
@@ -159,15 +103,66 @@ async function deleteProduct(productId) {
         if (!response.ok) throw new Error(data.erro || MENSAGENS.ERRO_DELETAR);
 
         mostrarSucesso(data.mensagem || MENSAGENS.SUCESSO_DELETAR);
-        await loadProducts();
+        await loadProdutos();
     } catch (error) {
         console.error('Erro:', error);
         mostrarErro(error.message || MENSAGENS.ERRO_DELETAR);
     }
 }
 
+// Função para carregar a lista de produtos
+async function loadProdutos() {
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/produtos`);
+        if (!response.ok) throw new Error(MENSAGENS.ERRO_CARREGAR);
+        
+        const { dados: produtos = [] } = await response.json();
+        
+        // Ordenando os produtos por sabor em ordem alfabética
+        const sortedProdutos = produtos.sort((a, b) => 
+            a.sabor.localeCompare(b.sabor, 'pt-BR', { sensitivity: 'base' })
+        );
+        
+        const produtosList = document.getElementById('produtos-list');
+        
+        produtosList.innerHTML = sortedProdutos.length === 0 
+            ? '<tr><td colspan="6">Nenhum produto encontrado</td></tr>'
+            : sortedProdutos.map(produto => `
+                <tr>
+                    <td>${produto.sabor || ''}</td>
+                    <td>${produto.descricao || ''}</td>
+                    <td>${produto.categoria || ''}</td>
+                    <td>${produto.tamanho || ''}</td>
+                    <td>R$ ${produto.preco ? Number(produto.preco).toFixed(2) : '0.00'}</td>
+                    <td>
+                        <button onclick="editProduct(${produto.id})" class="btn-small waves-effect waves-light green">
+                            <i class="material-icons">edit</i>
+                        </button>
+                        <button onclick="deleteProduct(${produto.id})" class="btn-small waves-effect waves-light red">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        M.toast({html: MENSAGENS.ERRO_CARREGAR});
+    }
+}
+
+function toggleProdutosList() {
+    const table = $('#produtosTable');
+    if (table.is(':visible')) {
+        table.hide();
+    } else {
+        loadProdutos(); // Recarrega a lista antes de exibir
+        table.show();
+    }
+}
+
 // Carregar produtos quando a página for carregada
 document.addEventListener('DOMContentLoaded', function() {
-    loadProducts();
+    loadProdutos(); // Alterado de loadProducts para loadProdutos
     M.FormSelect.init(document.querySelectorAll('select'));
+    $('#produtosTable').hide();
 });

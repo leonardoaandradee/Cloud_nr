@@ -3,19 +3,22 @@ const pedidosDB = require('../database/database-config');
 // Busca todos os pedidos
 function getPedidos(res) {
     pedidosDB.all(`
-        SELECT p.*, c.nome as cliente_nome, c.telefone as cliente_telefone,
-               GROUP_CONCAT(pr.sabor || ' (' || ip.quantidade || 'x)') as itens,
-               p.preco_total as total
+        SELECT 
+            p.*,
+            c.nome as cliente_nome,
+            c.telefone as cliente_telefone,
+            GROUP_CONCAT(pr.sabor || ' (' || ip.quantidade || 'x)') as itens
         FROM pedidos p
-        JOIN clientes c ON p.clientes_id = c.id
-        JOIN itens_pedido ip ON p.id = ip.pedidos_id
-        JOIN produtos pr ON ip.produtos_id = pr.id
+        LEFT JOIN clientes c ON p.clientes_id = c.id
+        LEFT JOIN itens_pedido ip ON p.id = ip.pedidos_id
+        LEFT JOIN produtos pr ON ip.produtos_id = pr.id
         GROUP BY p.id
         ORDER BY p.data_pedido DESC
     `, [], (err, rows) => {
         if (err) {
             console.error("Erro ao buscar pedidos:", err.message);
             return res.status(500).json({ 
+                sucesso: false,
                 erro: 'Erro ao buscar pedidos', 
                 detalhes: err.message 
             });
@@ -31,6 +34,7 @@ function getPedidos(res) {
 function createPedido(pedido, res) {
     if (!pedido.clientes_id || !pedido.itens || !pedido.endereco_entrega) {
         return res.status(400).json({
+            sucesso: false,
             erro: 'Dados incompletos',
             detalhes: 'Cliente, itens e endereço são obrigatórios!'
         });
@@ -47,13 +51,14 @@ function createPedido(pedido, res) {
                 pedido.preco_total,
                 pedido.endereco_entrega,
                 new Date().toISOString(),
-                'Pendente'
+                pedido.status || 'Pendente'
             ],
             function(err) {
                 if (err) {
                     pedidosDB.run('ROLLBACK');
                     console.error("Erro ao inserir pedido:", err.message);
                     return res.status(500).json({
+                        sucesso: false,
                         erro: 'Erro ao criar pedido',
                         detalhes: err.message
                     });
@@ -74,6 +79,7 @@ function createPedido(pedido, res) {
                                 pedidosDB.run('ROLLBACK');
                                 console.error("Erro ao inserir item:", err.message);
                                 return res.status(500).json({
+                                    sucesso: false,
                                     erro: 'Erro ao inserir item do pedido',
                                     detalhes: err.message
                                 });
@@ -83,6 +89,7 @@ function createPedido(pedido, res) {
                             if (itensProcessados === pedido.itens.length) {
                                 pedidosDB.run('COMMIT');
                                 res.status(201).json({
+                                    sucesso: true,
                                     mensagem: 'Pedido criado com sucesso',
                                     id: pedidoId
                                 });
@@ -178,32 +185,85 @@ function getPedidoById(id, res) {
 
 // Atualiza um pedido
 function updatePedido(id, pedido, res) {
-    pedidosDB.run(
-        `UPDATE pedidos 
-         SET preco_total = ?, endereco_entrega = ?, status = ?
-         WHERE id = ?`,
-        [pedido.preco_total, pedido.endereco_entrega, pedido.status, id],
-        function(err) {
-            if (err) {
-                console.error("Erro ao atualizar pedido:", err.message);
-                return res.status(500).json({
-                    erro: 'Erro ao atualizar pedido',
-                    detalhes: err.message
-                });
+    pedidosDB.serialize(() => {
+        pedidosDB.run('BEGIN TRANSACTION');
+
+        pedidosDB.run(
+            `UPDATE pedidos 
+             SET preco_total = ?, endereco_entrega = ?, status = ?
+             WHERE id = ?`,
+            [pedido.preco_total, pedido.endereco_entrega, pedido.status || 'Pendente', id],
+            function(err) {
+                if (err) {
+                    pedidosDB.run('ROLLBACK');
+                    console.error("Erro ao atualizar pedido:", err.message);
+                    return res.status(500).json({
+                        sucesso: false,
+                        erro: 'Erro ao atualizar pedido',
+                        detalhes: err.message
+                    });
+                }
+
+                // Se houver itens para atualizar
+                if (pedido.itens && pedido.itens.length > 0) {
+                    // Primeiro, remove todos os itens antigos
+                    pedidosDB.run(
+                        "DELETE FROM itens_pedido WHERE pedidos_id = ?",
+                        [id],
+                        (err) => {
+                            if (err) {
+                                pedidosDB.run('ROLLBACK');
+                                return res.status(500).json({
+                                    sucesso: false,
+                                    erro: 'Erro ao atualizar itens do pedido',
+                                    detalhes: err.message
+                                });
+                            }
+
+                            // Depois, insere os novos itens
+                            let itensProcessados = 0;
+                            pedido.itens.forEach(item => {
+                                pedidosDB.run(
+                                    `INSERT INTO itens_pedido (pedidos_id, produtos_id, quantidade, 
+                                                             preco_unitario, subtotal)
+                                     VALUES (?, ?, ?, ?, ?)`,
+                                    [id, item.produtos_id, item.quantidade, 
+                                     item.preco_unitario, item.subtotal],
+                                    (err) => {
+                                        if (err) {
+                                            pedidosDB.run('ROLLBACK');
+                                            return res.status(500).json({
+                                                sucesso: false,
+                                                erro: 'Erro ao inserir novo item',
+                                                detalhes: err.message
+                                            });
+                                        }
+                                        
+                                        itensProcessados++;
+                                        if (itensProcessados === pedido.itens.length) {
+                                            pedidosDB.run('COMMIT');
+                                            res.json({
+                                                sucesso: true,
+                                                mensagem: 'Pedido atualizado com sucesso',
+                                                id: id
+                                            });
+                                        }
+                                    }
+                                );
+                            });
+                        }
+                    );
+                } else {
+                    pedidosDB.run('COMMIT');
+                    res.json({
+                        sucesso: true,
+                        mensagem: 'Pedido atualizado com sucesso',
+                        id: id
+                    });
+                }
             }
-            if (this.changes === 0) {
-                return res.status(404).json({
-                    sucesso: false,
-                    mensagem: 'Pedido não encontrado para atualização'
-                });
-            }
-            res.json({
-                sucesso: true,
-                mensagem: 'Pedido atualizado com sucesso',
-                id: id
-            });
-        }
-    );
+        );
+    });
 }
 
 // Atualiza o status de um pedido
