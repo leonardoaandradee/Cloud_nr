@@ -12,7 +12,7 @@ const MENSAGENS = {
 let editingProductId = null;
 
 // Função para salvar ou atualizar um produto
-async function saveProduct() {
+async function saveProduto() {
     const form = document.getElementById('registrationForm');
     const formData = {
         sabor: form.sabor.value.trim().toUpperCase(),
@@ -158,6 +158,23 @@ function toggleProdutosList() {
         loadProdutos(); // Recarrega a lista antes de exibir
         table.show();
     }
+}
+
+// Funções auxiliares para mostrar mensagens
+function mostrarErro(mensagem) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: mensagem
+    });
+}
+
+function mostrarSucesso(mensagem) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: mensagem
+    });
 }
 
 // Carregar produtos quando a página for carregada
