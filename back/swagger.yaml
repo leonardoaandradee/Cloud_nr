@@ -3,9 +3,9 @@ info:
   title: API de Clientes, Pedidos e Produtos
   version: 1.0.0
   description: API para gerenciamento de clientes, pedidos e produtos
-
+ 
 servers:
-  - url: http://localhost:4000
+  - url: https://cautious-space-parakeet-x59jv666q9pq29x7j-4000.app.github.dev
     description: Servidor local
 
 paths:

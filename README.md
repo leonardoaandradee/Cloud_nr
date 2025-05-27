@@ -38,6 +38,10 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - API Via CEP
 - API Open Street Map
 
+#### Swagger:
+- Ensira o endereço do backend em swagger.yaml (linha 8)
+- Para ter acesso, inicie o servidor backend e acesse a rota /api-docs no navegador.
+
 ## 🔗 Estrutura de Comunicação:
 A aplicação é dividida entre cliente e servidor:
 - O **frontend** envia requisições HTTP (GET, POST, PUT, DELETE) para o backend.
