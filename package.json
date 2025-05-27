@@ -1,12 +1,14 @@
 {
   "dependencies": {
+    "cors": "^2.8.5",
     "imask": "^7.6.1",
     "install": "^0.13.0",
     "json-server": "^0.17.4",
     "npm": "^11.4.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "sweetalert2": "^11.21.2"
+    "sweetalert2": "^11.21.2",
+    "yamljs": "^0.3.0"
   },
   "name": "cloud-nr",
   "version": "1.0.0",

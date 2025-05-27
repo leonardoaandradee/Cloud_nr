@@ -1,0 +1,447 @@
+openapi: 3.0.0
+info:
+  title: API de Clientes, Pedidos e Produtos
+  version: 1.0.0
+  description: API para gerenciamento de clientes, pedidos e produtos
+
+servers:
+  - url: http://localhost:4000
+    description: Servidor local
+
+paths:
+  # --- Clientes ---
+  /clientes:
+    get:
+      summary: Lista todos os clientes
+      responses:
+        '200':
+          description: Lista de clientes retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cliente'
+    post:
+      summary: Cria um novo cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+      responses:
+        '201':
+          description: Cliente criado com sucesso
+        '500':
+          description: Erro ao criar cliente
+
+  /clientes/{id}:
+    get:
+      summary: Busca cliente por ID específico
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do cliente
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cliente'
+        '404':
+          description: Cliente não encontrado
+    put:
+      summary: Atualiza cliente por ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+      responses:
+        '200':
+          description: Cliente atualizado com sucesso
+        '500':
+          description: Erro ao atualizar cliente
+    delete:
+      summary: Exclui cliente por ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do cliente
+      responses:
+        '200':
+          description: Cliente excluído com sucesso
+        '500':
+          description: Erro ao excluir cliente
+
+  /clientes/buscar:
+    get:
+      summary: Busca cliente por telefone
+      parameters:
+        - in: query
+          name: telefone
+          schema:
+            type: string
+          required: true
+          description: Telefone do cliente
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cliente'
+        '400':
+          description: Telefone não fornecido
+
+  /clientes/{id}/historico:
+    get:
+      summary: Busca histórico de pedidos do cliente
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do cliente
+      responses:
+        '200':
+          description: Histórico encontrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                  cliente_nome:
+                    type: string
+                  historico:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pedido'
+        '404':
+          description: Cliente não encontrado
+
+  # --- Pedidos ---
+  /pedidos:
+    get:
+      summary: Lista todos os pedidos
+      responses:
+        '200':
+          description: Lista de pedidos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pedido'
+    post:
+      summary: Cria um novo pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoInput'
+      responses:
+        '201':
+          description: Pedido criado com sucesso
+        '500':
+          description: Erro ao criar pedido
+
+  /pedidos/{id}:
+    get:
+      summary: Busca pedido específico por ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do pedido
+      responses:
+        '200':
+          description: Pedido encontrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+        '404':
+          description: Pedido não encontrado
+    put:
+      summary: Atualiza pedido por ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoInputComStatus'
+      responses:
+        '200':
+          description: Pedido atualizado com sucesso
+        '500':
+          description: Erro ao atualizar pedido
+    delete:
+      summary: Exclui pedido por ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID do pedido
+      responses:
+        '200':
+          description: Pedido excluído com sucesso
+        '500':
+          description: Erro ao excluir pedido
+
+  /pedidos/historico:
+    get:
+      summary: Lista histórico de todos os pedidos
+      responses:
+        '200':
+          description: Histórico de pedidos retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pedido'
+        '500':
+          description: Erro ao buscar histórico de pedidos
+
+  # --- Produtos ---
+  /produtos:
+    get:
+      summary: Lista todos os produtos
+      responses:
+        '200':
+          description: Lista de produtos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Produto'
+        '500':
+          description: Erro ao buscar produtos
+    post:
+      summary: Cria um novo produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoInput'
+      responses:
+        '201':
+          description: Produto criado com sucesso
+        '500':
+          description: Erro ao criar produto
+
+  /produtos/{id}:
+    get:
+      summary: Busca produto por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID do produto
+      responses:
+        '200':
+          description: Produto encontrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          description: Produto não encontrado
+    put:
+      summary: Atualiza produto por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID do produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoInput'
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+        '500':
+          description: Erro ao atualizar produto
+    delete:
+      summary: Exclui produto por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID do produto
+      responses:
+        '200':
+          description: Produto excluído com sucesso
+        '500':
+          description: Erro ao excluir produto
+
+components:
+  schemas:
+    Cliente:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+        telefone:
+          type: string
+        CEP:
+          type: string
+        rua:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        estado:
+          type: string
+        complemento:
+          type: string
+    ClienteInput:
+      type: object
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+        telefone:
+          type: string
+        CEP:
+          type: string
+        rua:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        estado:
+          type: string
+        complemento:
+          type: string
+      required:
+        - nome
+        - telefone
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: integer
+        clientes_id:
+          type: integer
+        itens:
+          type: array
+          items:
+            type: object
+        preco_total:
+          type: number
+        endereco_entrega:
+          type: string
+        status:
+          type: string
+    PedidoInput:
+      type: object
+      properties:
+        clientes_id:
+          type: integer
+        itens:
+          type: array
+          items:
+            type: object
+        preco_total:
+          type: number
+        endereco_entrega:
+          type: string
+      required:
+        - clientes_id
+        - itens
+        - preco_total
+        - endereco_entrega
+    PedidoInputComStatus:
+      allOf:
+        - $ref: '#/components/schemas/PedidoInput'
+        - type: object
+          properties:
+            status:
+              type: string
+    Produto:
+      type: object
+      properties:
+        id:
+          type: integer
+        sabor:
+          type: string
+        descricao:
+          type: string
+        categoria:
+          type: string
+        tamanho:
+          type: string
+        preco:
+          type: number
+    ProdutoInput:
+      type: object
+      properties:
+        sabor:
+          type: string
+        descricao:
+          type: string
+        categoria:
+          type: string
+        tamanho:
+          type: string
+        preco:
+          type: number
+      required:
+        - sabor
+        - preco

@@ -1,4 +1,5 @@
-// Importações principais
+// app.js
+
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -6,7 +7,6 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 
-// Inicialização do app
 const app = express();
 
 // Configuração do CORS
@@ -20,23 +20,25 @@ app.use(cors({
 
 // Middlewares principais
 app.use(logger('dev'));
-app.use(express.json()); 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /**
- * Só usei pra testar as requisições e exibir o tipo no consdole
+ * Só usei pra testar as requisições e exibir o tipo no console
  * Não é necessário para o funcionamento do sistema
  */
 app.use((req, res, next) => {
-    console.log('Teste de tipo de requisição:', {
-        method: req.method,
-        path: req.path,
-        origin: req.headers.origin,
-    });
-    next();
+  console.log('Teste de tipo de requisição:', {
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin,
+  });
+  next();
 });
 
+// 🔥 Importa e usa o Swagger com swagger.yaml (arquivo separado)
+require('./swagger')(app);
 
 // Importação das rotas
 const indexRouter = require('./routes/index');
@@ -54,16 +56,16 @@ app.use('/viacep', viacepRouter);
 
 // Tratamento de erros
 app.use((req, res, next) => {
-    next(createError(404));
+  next(createError(404));
 });
 
 app.use((err, req, res, next) => {
-    const error = {
-        status: err.status || 500,
-        message: err.message || 'Erro interno do servidor'
-    };
-    
-    res.status(error.status).json(error);
+  const error = {
+    status: err.status || 500,
+    message: err.message || 'Erro interno do servidor'
+  };
+
+  res.status(error.status).json(error);
 });
 
 module.exports = app;
