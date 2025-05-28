@@ -105,13 +105,17 @@
             <label for="clientComplemento"><b>Complemento:</b></label>
           </div>
 
+          <div class="col s12">
+            <p style="color: red; font-size: 0.7rem; margin: 0 0 10px 0;">* Campos obrigatórios.</p>
+          </div>
+
           <div class="input-field col s12">
             <button class="btn waves-effect green btn-small" type="button" onclick="saveClient()">Salvar
               <i class="material-icons right">send</i>
             </button>
             <button class="btn waves-effect blue btn-small" type="button" onclick="toggleClientesList()">
               <i class="material-icons left">list</i>
-              Exibir Cadastrados
+              <span id="toggleButtonText">Exibir Clientes</span>
             </button>
           </div>
         </div>
@@ -188,7 +192,7 @@
           </p>
           <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
             <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
-            Desenvolvido com Node.js, Express, SQLite3, API Open Street Map e API Via Cep.
+            Faculdade Nova Roma - ADS - Projeto Integrador - Full Stack | Prof. Henning Summer
           </p>
           <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
             <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>

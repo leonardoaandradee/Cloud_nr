@@ -152,11 +152,14 @@ async function loadProdutos() {
 
 function toggleProdutosList() {
     const table = $('#produtosTable');
+    const buttonText = document.getElementById('toggleButtonText');
     if (table.is(':visible')) {
         table.hide();
+        buttonText.textContent = 'Exibir Produtos';
     } else {
-        loadProdutos(); // Recarrega a lista antes de exibir
+        loadProdutos(); 
         table.show();
+        buttonText.textContent = 'Ocultar Lista';
     }
 }
 

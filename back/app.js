@@ -44,6 +44,7 @@ const produtosRouter = require('./routes/produtos');
 const clientesRouter = require('./routes/clientes');
 const ordensRouter = require('./routes/pedidos');
 const viacepRouter = require('./routes/viacep');
+const contagensRouter = require('./routes/contagens');
 
 // Definição das rotas
 app.use('/', indexRouter);
@@ -51,6 +52,7 @@ app.use('/produtos', produtosRouter);
 app.use('/clientes', clientesRouter);
 app.use('/pedidos', ordensRouter);
 app.use('/viacep', viacepRouter);
+app.use('/contagens', contagensRouter);
 
 // Tratamento de erros
 app.use((req, res, next) => {

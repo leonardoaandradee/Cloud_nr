@@ -263,11 +263,14 @@ async function showClientHistory(clientId) {
 
 function toggleClientesList() {
     const table = $('#clientesTable');
+    const buttonText = document.getElementById('toggleButtonText');
     if (table.is(':visible')) {
         table.hide();
+        buttonText.textContent = 'Exibir Clientes';
     } else {
-        loadClients(); // Recarrega a lista antes de exibir
+        loadClients();
         table.show();
+        buttonText.textContent = 'Ocultar Lista';
     }
 }
 

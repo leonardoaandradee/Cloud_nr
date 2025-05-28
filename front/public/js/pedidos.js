@@ -194,7 +194,8 @@ async function carregarPedidos() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="pedido-id">
-                    <a href="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
+                    
+                    <a hr<i class="material-icons" style="vertical-align: middle; color: #900404; margin-right: 5px;">assignment</i>ef="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
                        class="blue-text text-darken-2">
                         <b>Nº ${pedido.id}</b>
                     </a>
@@ -1052,11 +1053,14 @@ function gerarOpcoesStatus(statusAtual) {
 
 function togglePedidosList() {
     const table = $('#pedidosTable');
+    const buttonText = document.getElementById('toggleButtonText');
     if (table.is(':visible')) {
         table.hide();
+        buttonText.textContent = 'Exibir Pedidos';
     } else {
-        carregarPedidos(); // Recarrega a lista antes de exibir
+        carregarPedidos();
         table.show();
+        buttonText.textContent = 'Ocultar Lista';
     }
 }
 
