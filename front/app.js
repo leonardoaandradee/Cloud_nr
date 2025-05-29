@@ -32,7 +32,21 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-
+// Middleware de autenticação
+app.use((req, res, next) => {
+  // Permitir acesso à página de login e arquivos estáticos sem autenticação
+  if (req.path === '/login' || 
+      req.path === '/' ||  // Redirecionar a raiz também será tratado na rota
+      req.path.startsWith('/js/') || 
+      req.path.startsWith('/css/') || 
+      req.path.startsWith('/components/')) {
+    return next();
+  }
+  
+  // Para todas as outras rotas, verificar se está apenas renderizando no servidor
+  // Continuamos, pois a verificação do token será feita no cliente
+  next();
+});
 
 // Rotas
 app.use('/', indexRouter);

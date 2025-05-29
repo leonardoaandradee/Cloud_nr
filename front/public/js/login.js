@@ -1,8 +1,4 @@
-const { config } = require("dotenv");
-
 document.addEventListener('DOMContentLoaded', function() {
-    checarLogin();
-
     const form = document.getElementById('login-form');
     if (form) {
         form.addEventListener('submit', async function(e) {
@@ -11,23 +7,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = form.password.value;
 
             try {
-                const response = await fetch(CONFIG.API_URL, {
+                // Mostrar mensagem de processamento
+                const toast = M.toast({html: 'Processando login...', classes: 'blue'});
+                
+                console.log(`Enviando requisição para ${CONFIG.API_URL}/login`);
+                const response = await fetch(`${CONFIG.API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
 
-                const data = await response.json();
+                toast.dismiss();
+                console.log('Resposta recebida:', response.status);
+                
+                // Tentar ler o corpo da resposta
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('Dados recebidos:', data);
+                } catch (jsonError) {
+                    console.error('Erro ao processar resposta JSON:', jsonError);
+                    data = { message: 'Erro ao processar resposta do servidor' };
+                }
 
                 if (response.ok && data.token) {
                     // Salva o token JWT no localStorage
                     localStorage.setItem('token', data.token);
-                    window.location.href = '/'; // Redireciona para a home após login
+                    M.toast({html: 'Login realizado com sucesso!', classes: 'green'});
+                    
+                    // Redireciona para a página inicial sempre
+                    window.location.href = '/';
                 } else {
-                    alert(data.message || 'Usuário ou senha inválidos');
+                    // Exibe mensagem de erro
+                    M.toast({html: data.message || 'Usuário ou senha inválidos', classes: 'red'});
                 }
             } catch (err) {
-                alert('Erro ao tentar fazer login');
+                console.error('Erro ao fazer login:', err);
+                M.toast({html: 'Erro ao tentar fazer login. Verifique se a API está disponível.', classes: 'red'});
             }
         });
     }
@@ -47,7 +63,7 @@ async function checarLogin() {
             }
         });
         if (response.ok) {
-            alert('login');
+            console.log('Login verificado com sucesso');
         } else {
             localStorage.removeItem('token');
         }

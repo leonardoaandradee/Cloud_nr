@@ -34,6 +34,27 @@ const MENSAGENS = {
 
 let editingPedidoId = null;
 
+// Função para alternar a visibilidade da lista de pedidos
+function togglePedidosListVisibility() {
+    const pedidosTableSection = document.getElementById('pedidosTableSection');
+    const visibilityIcon = document.getElementById('visibilityIcon');
+    const visibilityText = document.getElementById('visibilityText');
+    
+    // Alternar visibilidade
+    if (pedidosTableSection.style.display === 'none') {
+        pedidosTableSection.style.display = 'block';
+        visibilityIcon.textContent = 'visibility';
+        visibilityText.textContent = 'Ocultar';
+    } else {
+        pedidosTableSection.style.display = 'none';
+        visibilityIcon.textContent = 'visibility_off';
+        visibilityText.textContent = 'Exibir';
+    }
+}
+
+// Torna a função acessível globalmente para o onclick do HTML
+window.togglePedidosListVisibility = togglePedidosListVisibility;
+
 // Inicialização do documento
 document.addEventListener('DOMContentLoaded', function() {
     inicializarComponentes();

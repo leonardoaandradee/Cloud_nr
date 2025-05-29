@@ -7,6 +7,35 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <!-- Adicionar config.js antes do login.js -->
+  <script src="/js/config.js"></script>
+  
+  <!-- Verificar se já está logado -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          const response = await fetch(`${CONFIG.API_URL}/verificar-token`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            // Se já está logado, redirecionar para a página inicial
+            window.location.href = '/';
+            return;
+          }
+        } catch (err) {
+          console.error('Erro ao verificar token:', err);
+          localStorage.removeItem('token');
+        }
+      }
+    });
+  </script>
 </head>
 <body style="background: url('/components/images/background_04.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh;">
   <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
@@ -20,6 +49,7 @@
             </div>
         
             <span class="card-title center-align">Login</span>
+            <div id="login-status" class="center-align" style="margin-bottom: 20px; color: #f44336;"></div>
             <form id="login-form">
               <div class="input-field">
                 <input id="username" name="username" type="text" required>
@@ -34,12 +64,26 @@
                   <i class="material-icons right">send</i>
                 </button>
               </div>
+              
             </form>
           </div>
         </div>
       </div>
     </div>
   </div>
+  
+  <!-- Debug info -->
+  <div id="debug-info" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; max-width: 300px; font-size: 12px; display: none;"></div>
+  
+  <script>
+    // Para testes: Mostrar informações de debug
+    function addDebugInfo(message) {
+      const debugElement = document.getElementById('debug-info');
+      debugElement.style.display = 'block';
+      debugElement.innerHTML += message + '<br>';
+    }
+  </script>
+  
   <script src="/js/materialize.js"></script>
   <script src="/js/login.js"></script>
 </body>

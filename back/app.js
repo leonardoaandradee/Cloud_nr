@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
+const { router: authRouter, verificarToken } = require('./routes/auth');
 const URL_FRONT ='https://glowing-journey-jjqjvp5qwqvxfqjxj-3000.app.github.dev'   
 
 // Inicialização do app
@@ -23,6 +25,8 @@ app.use(logger('dev'));
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 /**
  * Só usei pra testar as requisições e exibir o tipo no consdole
@@ -77,6 +81,7 @@ const clientesRouter = require('./routes/clientes');
 const ordensRouter = require('./routes/pedidos');
 const viacepRouter = require('./routes/viacep');
 const loginRouter = require('./routes/login');
+const contagemRouter = require('./routes/contagem'); // Nova importação
 
 // Rota de login
 app.post('/login', (req, res) => {
@@ -102,6 +107,15 @@ app.get('/auth/status', checkAuthJWT, (req, res) => {
 app.use('/produtos', checkAuthJWT, produtosRouter);
 app.use('/clientes', checkAuthJWT, clientesRouter);
 app.use('/pedidos', checkAuthJWT, ordensRouter);
+app.use('/contagem', checkAuthJWT, contagemRouter); // Nova rota protegida
+
+// Rotas de autenticação
+app.use('/', authRouter);
+
+// Rota de teste para clientes (protegida)
+app.get('/clientes', verificarToken, (req, res) => {
+  res.json({ message: 'Rota protegida acessada com sucesso', user: req.usuario });
+});
 
 // Definição das rotas
 app.use('/', indexRouter);
@@ -120,6 +134,12 @@ app.use((err, req, res, next) => {
     };
     
     res.status(error.status).json(error);
+});
+
+// Iniciando o servidor
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
 
 module.exports = app;

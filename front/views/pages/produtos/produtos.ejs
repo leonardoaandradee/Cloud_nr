@@ -18,43 +18,55 @@
 </head>
 
 <body>
-  <!-- Barra de navegação -->
+  <!-- Barra de navegação atualizada -->
   <nav class="white" role="navigation">
     <div class="nav-wrapper container">
-      <a href="/" class="logo-container">
-        <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" class="nav-logo" />
-      </a>
-      <ul class="right hide-on-med-and-down">
-        <li>
-            <a href="/" class="black-text nav-item-off nav-item-bright">
-              <i class="small material-icons" style="vertical-align: middle;">home</i>
-            Home</a>
-        </li>
-        <li>
-            <a href="/produtos" class="nav-item-off nav-item-bright" style="color: #900404">
-              <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
-            Produtos</a>
-        </li>
-        <li>
-            <a href="/clientes" class="black-text nav-item-off nav-item-bright" >
-              <i class="small material-icons" style="vertical-align: middle;">account_box</i>
-            Clientes</a>
-        </li>
-        <li>
-            <a href="/pedidos" class="black-text nav-item-off nav-item-bright">
-              <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
-            Pedidos</a>
-        </li>
-      </ul>
-      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
+        <a href="/" class="logo-container">
+            <img src="../components/images/logo_pizzashow.png" alt="Pizza Show" class="nav-logo" />
+        </a>
+        <ul class="right hide-on-med-and-down">
+            <li>
+                <a href="/" class="black-text nav-item-off nav-item-bright">
+                    <i class="small material-icons" style="vertical-align: middle;">home</i>
+                    Home
+                </a>
+            </li>
+            <li>
+                <a href="/produtos" class="nav-item-off nav-item-bright" style="color: #900404">
+                    <i class="small material-icons" style="vertical-align: middle;">restaurant</i>
+                    Produtos
+                </a>
+            </li>
+            <li>
+                <a href="/clientes" class="black-text nav-item-off nav-item-bright" >
+                    <i class="small material-icons" style="vertical-align: middle;">account_box</i>
+                    Clientes
+                </a>
+            </li>
+            <li>
+                <a href="/pedidos" class="black-text nav-item-off nav-item-bright">
+                    <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
+                    Pedidos
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="window.auth.logout(); return false;" class="black-text nav-item-off nav-item-bright">
+                    <i class="small material-icons" style="vertical-align: middle;">exit_to_app</i>
+                    Sair
+                </a>
+            </li>
+        </ul>
+        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
     </div>
   </nav>
 
-  <!-- Menu Mobile -->
+  <!-- Menu Mobile atualizado -->
   <ul id="nav-mobile" class="sidenav">
+    <li><a href="/">Home</a></li>
     <li><a href="/produtos">Produtos</a></li>
     <li><a href="/clientes">Clientes</a></li>
     <li><a href="/pedidos">Pedidos</a></li>
+    <li><a href="#" onclick="window.auth.logout(); return false;">Sair</a></li>
   </ul>
 
   <div class="container">
@@ -101,28 +113,36 @@
           </div>
 
           <div class="input-field col s6">
-            <button class="btn waves-effect green btn-small" type="button" onclick="saveProduct()">Salvar
+            <button class="btn waves-effect green btn-small" type="button" onclick="saveProduct()">
               <i class="material-icons right">send</i>
+              Salvar
+            </button>
+            &nbsp;
+            <button id="toggleVisibilityBtn" class="btn waves-effect blue btn-small" type="button" onclick="toggleProductListVisibility()">
+              <i id="visibilityIcon" class="material-icons">visibility_off</i>
+              <span id="visibilityText">Exibir</span>
             </button>
           </div>
         </div>
       </form>
 
-      <table class="striped"> 
-        <thead>
-          <tr>
-              <th>Sabor</th>
-              <th>Descrição</th>
-              <th>Categoria</th>
-              <th>Tamanho</th>
-              <th>Preço (R$)</th>
-              <th>Editar/Deletar</th>
-          </tr>
-        </thead>
-        <tbody id="products-list">
-          <!-- Produtos serão carregados aqui via JavaScript -->
-        </tbody>
-      </table>
+      <div id="productListContainer">
+        <table class="striped"> 
+          <thead>
+            <tr>
+                <th>Sabor</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Tamanho</th>
+                <th>Preço (R$)</th>
+                <th>Editar/Deletar</th>
+            </tr>
+          </thead>
+          <tbody id="products-list">
+            <!-- Produtos serão carregados aqui via JavaScript -->
+          </tbody>
+        </table>
+      </div>
 
       <!-- Modal de Sucesso -->
       <div id="successModal" class="modal">
@@ -138,8 +158,36 @@
     </div>
   </div>
 
+  <!-- Footer atualizado -->
+  <footer class="page-footer grey lighten-4" style="margin-top: 20px;">
+    <div class="container">
+        <div class="row" style="margin-bottom: 0;">
+            <div class="col s12" style="line-height: 0.8;">
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">info</i>
+                    Sistema para gerenciamento de produtos, clientes e pedidos de pizzaria.
+                </p>
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
+                    Análise e desenvolvimento de sistemas - Faculdade Nova Roma - Full Stack | Projeto Integrador
+                </p>
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>
+                    Prof. Henning Summer | Alunos: Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copyright" style="padding: 5px 0;">
+        <div class="container black-text" style="font-size: 0.7rem;">
+            © 2025 Pizza Show
+        </div>
+    </div>
+  </footer>
+
   <!-- Scripts -->
   <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="/js/materialize.js"></script>
   <script src="/js/init.js"></script>

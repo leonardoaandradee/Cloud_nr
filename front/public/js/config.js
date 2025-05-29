@@ -5,4 +5,7 @@ const CONFIG = {
     URL_FRONT:'https://glowing-journey-jjqjvp5qwqvxfqjxj-3000.app.github.dev'    
 };
 
-module.exports = CONFIG
+// Exportar para Node.js quando estiver no servidor
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CONFIG;
+}
