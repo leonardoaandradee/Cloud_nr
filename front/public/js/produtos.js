@@ -11,6 +11,9 @@ const MENSAGENS = {
 
 let editingProductId = null;
 
+// Variável para controlar o estado de visibilidade da lista de produtos
+let isProductListVisible = true;
+
 function tratar401(response) {
     if (response.status === 401) {
         window.location.href = '/login';
@@ -183,8 +186,46 @@ async function deleteProduct(productId) {
     }
 }
 
+// Função para alternar a visibilidade da lista de produtos
+function toggleProductListVisibility() {
+    const productListContainer = document.getElementById('productListContainer');
+    const visibilityIcon = document.getElementById('visibilityIcon');
+    const visibilityText = document.getElementById('visibilityText');
+    
+    isProductListVisible = !isProductListVisible;
+    
+    if (isProductListVisible) {
+        productListContainer.style.display = 'block';
+        visibilityIcon.textContent = 'visibility';
+        visibilityText.textContent = 'Ocultar';
+    } else {
+        productListContainer.style.display = 'none';
+        visibilityIcon.textContent = 'visibility_off';
+        visibilityText.textContent = 'Exibir';
+    }
+    
+    // Salvar preferência do usuário no localStorage
+    localStorage.setItem('productListVisible', isProductListVisible);
+}
+
 // Carregar produtos quando a página for carregada
 document.addEventListener('DOMContentLoaded', function() {
     loadProducts();
     M.FormSelect.init(document.querySelectorAll('select'));
+    
+    // Recuperar preferência do usuário para visibilidade da lista
+    const savedVisibility = localStorage.getItem('productListVisible');
+    if (savedVisibility !== null) {
+        isProductListVisible = savedVisibility === 'true';
+        if (!isProductListVisible) {
+            // Se a preferência for ocultar, atualizamos a interface
+            const productListContainer = document.getElementById('productListContainer');
+            const visibilityIcon = document.getElementById('visibilityIcon');
+            const visibilityText = document.getElementById('visibilityText');
+            
+            productListContainer.style.display = 'none';
+            visibilityIcon.textContent = 'visibility_off';
+            visibilityText.textContent = 'Exibir';
+        }
+    }
 });

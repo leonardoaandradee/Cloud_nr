@@ -146,6 +146,11 @@
               <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
             Pedidos</a>
         </li>
+        <li>
+            <a href="#" onclick="window.auth.logout(); return false;" class="black-text nav-item-off nav-item-bright">
+              <i class="small material-icons" style="vertical-align: middle;">exit_to_app</i>
+            Sair</a>
+        </li>
       </ul>
             <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
         </div>
@@ -153,15 +158,17 @@
 
     <!-- Menu Mobile -->
     <ul id="nav-mobile" class="sidenav">
+        <li><a href="/">Home</a></li>
         <li><a href="/produtos">Produtos</a></li>
         <li><a href="/clientes">Clientes</a></li>
         <li><a href="/pedidos">Pedidos</a></li>
+        <li><a href="#" onclick="window.auth.logout(); return false;">Sair</a></li>
     </ul>
 
     <div class="container">
         <div class="row">
             <form id="orderForm" class="col s12">
-                <div class="row">
+                <div class="row>
                 
                     <h5><b>Pedidos</b></h5>
                     
@@ -273,21 +280,29 @@
 
             <!-- Listagem de Pedidos -->
             <div class="row" style="margin-top: 40px;">
-                <h5><b>Histórico de Pedidos</b></h5>
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>Nº Pedido</th>
-                            <th>Data/Hora</th>
-                            <th>Cliente</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pedidos-list">
-                        <!-- Pedidos serão carregados aqui via JavaScript -->
-                    </tbody>
-                </table>
+                <h5>
+                    <button id="toggleVisibilityBtn" class="btn waves-effect blue btn-small" type="button" onclick="togglePedidosListVisibility()">
+                        <i id="visibilityIcon" class="material-icons">visibility_off</i>
+                        <span id="visibilityText">Exibir</span>
+                    </button>
+                    <b>Histórico de Pedidos</b>
+                </h5>
+                <div id="pedidosTableSection" style="display: none;">
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>Nº Pedido</th>
+                                <th>Data/Hora</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidos-list">
+                            <!-- Pedidos serão carregados aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -303,11 +318,11 @@
                     </p>
                     <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
                         <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
-                        Desenvolvido com Node.js, Express, SQLite3, API Open Street Map e API Via Cep.
+                        Análise e desenvolvimento de sistemas - Faculdade Nova Roma - Full Stack | Projeto Integrador
                     </p>
                     <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
                         <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>
-                        Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
+                        Prof. Henning Summer | Alunos: Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
                     </p>
                 </div>
             </div>
@@ -374,6 +389,7 @@
 
     <!-- Scripts -->
     <script src="/js/config.js"></script>
+    <script src="/js/auth.js"></script>
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/js/materialize.js"></script>
@@ -382,6 +398,23 @@
     <script>
       // Garante que mostrarDetalhesPedido está disponível globalmente
       window.mostrarDetalhesPedido = mostrarDetalhesPedido;
+
+      // Função para alternar a visibilidade da lista de pedidos
+      function togglePedidosListVisibility() {
+        var section = document.getElementById("pedidosTableSection");
+        var icon = document.getElementById("visibilityIcon");
+        var text = document.getElementById("visibilityText");
+
+        if (section.style.display === "none" || section.style.display === "") {
+          section.style.display = "block";
+          icon.innerText = "visibility";
+          text.innerText = "Ocultar";
+        } else {
+          section.style.display = "none";
+          icon.innerText = "visibility_off";
+          text.innerText = "Exibir";
+        }
+      }
     </script>
 </body>
 </html>
