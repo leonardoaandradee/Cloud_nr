@@ -10,9 +10,39 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
     <link href="/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    
+    <!-- Scripts de configuração e autenticação -->
+    <script src="/js/config.js"></script>
+    <script src="/js/auth.js"></script>
+    
+    <!-- Verificação imediata de autenticação -->
+    <script>
+      (function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/login';
+        }
+      })();
+    </script>
   </head>
 
   <body>
+    <!-- Script para verificar autenticação -->
+    <script>
+      // Verificar autenticação quando a página carregar
+      document.addEventListener('DOMContentLoaded', async function() {
+        try {
+          const autenticado = await window.auth.verificarAutenticacao();
+          if (!autenticado) {
+            window.auth.redirecionarParaLogin();
+          }
+        } catch (err) {
+          console.error('Erro na verificação de autenticação:', err);
+          window.auth.redirecionarParaLogin();
+        }
+      });
+    </script>
+    
     <!-- Barra de navegação principal -->
     <nav class="white" role="navigation">
       <div class="nav-wrapper container">
@@ -47,6 +77,12 @@
               <span>Pedidos</span>
             </a>
           </li>
+          <li>
+            <a href="#" onclick="window.auth.logout(); return false;" class="black-text nav-item-off nav-item-bright">
+              <i class="material-icons">exit_to_app</i>
+              <span>Sair</span>
+            </a>
+          </li>
         </ul>
 
         <!-- Botão menu mobile -->
@@ -61,6 +97,7 @@
       <li><a href="/produtos">Produtos</a></li>
       <li><a href="/clientes">Clientes</a></li>
       <li><a href="/pedidos">Pedidos</a></li>
+      <li><a href="#" onclick="window.auth.logout(); return false;">Sair</a></li>
     </ul>
 
     <!-- Conteúdo principal -->
@@ -77,6 +114,10 @@
                 </div>
                 <div class="card-content">
                   <p>Gerencie o catálogo de produtos.</p>
+                  <p class="mt-2">
+                    <span style="font-weight: 500;">Total Produtos Cadastrados:</span>
+                    <span class="badge green white-text" id="produtos-badge" style="margin-left: 5px; border-radius: 10px; padding: 2px 8px;">0</span>
+                  </p>
                 </div>
                 <div class="card-action">
                   <a href="/produtos" class="red-text">Acessar Produtos</a>
@@ -92,6 +133,10 @@
                 </div>
                 <div class="card-content">
                   <p>Gerencie os dados dos clientes.</p>
+                  <p class="mt-2">
+                    <span style="font-weight: 500;">Total Clientes Cadastrados:</span>
+                    <span class="badge green white-text" id="clientes-badge" style="margin-left: 5px; border-radius: 10px; padding: 2px 8px;">0</span>
+                  </p>
                 </div>
                 <div class="card-action">
                   <a href="/clientes" class="red-text">Acessar Clientes</a>
@@ -107,6 +152,10 @@
                 </div>
                 <div class="card-content">
                   <p>Controle os pedidos realizados.</p>
+                  <p class="mt-2">
+                    <span style="font-weight: 500;">Total Pedidos Cadastrados:</span>
+                    <span class="badge green white-text" id="pedidos-badge" style="margin-left: 5px; border-radius: 10px; padding: 2px 8px;">0</span>
+                  </p>
                 </div>
                 <div class="card-action">
                   <a href="/pedidos" class="red-text">Acessar Pedidos</a>
@@ -128,11 +177,11 @@
             </p>
             <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
               <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
-              Desenvolvido com Node.js, Express, SQLite3, API Open Street Map e API Via Cep.
+              Análise e desenvolvimento de sistemas - Faculdade Nova Roma - Full Stack | Projeto Integrador
             </p>
             <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
               <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>
-              Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
+              Prof. Henning Summer | Alunos: Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
             </p>
           </div>
         </div>
@@ -147,5 +196,46 @@
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="/js/materialize.js"></script>
     <script src="/js/init.js"></script>
+    
+    <!-- Script para carregar as contagens -->
+    <script>
+      // Função para buscar e atualizar contagens
+      async function carregarContagens() {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+          
+          const headers = {
+            'Authorization': `Bearer ${token}`
+          };
+          
+          // Buscar contagem de produtos
+          const produtosResponse = await fetch(`${CONFIG.API_URL}/contagem/produtos`, { headers });
+          if (produtosResponse.ok) {
+            const produtosData = await produtosResponse.json();
+            document.getElementById('produtos-badge').textContent = produtosData.total || 0;
+          }
+          
+          // Buscar contagem de clientes
+          const clientesResponse = await fetch(`${CONFIG.API_URL}/contagem/clientes`, { headers });
+          if (clientesResponse.ok) {
+            const clientesData = await clientesResponse.json();
+            document.getElementById('clientes-badge').textContent = clientesData.total || 0;
+          }
+          
+          // Buscar contagem de pedidos
+          const pedidosResponse = await fetch(`${CONFIG.API_URL}/contagem/pedidos`, { headers });
+          if (pedidosResponse.ok) {
+            const pedidosData = await pedidosResponse.json();
+            document.getElementById('pedidos-badge').textContent = pedidosData.total || 0;
+          }
+        } catch (error) {
+          console.error('Erro ao carregar contagens:', error);
+        }
+      }
+      
+      // Carregar contagens quando a página terminar de carregar
+      document.addEventListener('DOMContentLoaded', carregarContagens);
+    </script>
   </body>
 </html>

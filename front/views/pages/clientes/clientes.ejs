@@ -44,6 +44,12 @@
               <i class="small material-icons" style="vertical-align: middle;">add_shopping_cart</i>
             Pedidos</a>
         </li>
+        <li>
+          <a href="#" onclick="window.auth.logout(); return false;" class="black-text nav-item-off nav-item-bright">
+            <i class="small material-icons" style="vertical-align: middle;">exit_to_app</i>
+            Sair
+          </a>
+        </li>
       </ul>
 
       <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons black-text">menu</i></a>
@@ -51,9 +57,11 @@
   </nav>
 
   <ul id="nav-mobile" class="sidenav">
+    <li><a href="/">Home</a></li>
     <li><a href="/produtos">Produtos</a></li>
     <li><a href="/clientes">Clientes</a></li>
     <li><a href="/pedidos">Pedidos</a></li>
+    <li><a href="#" onclick="window.auth.logout(); return false;">Sair</a></li>
   </ul>
 
   <div class="container">
@@ -112,36 +120,31 @@
             <button class="btn waves-effect green btn-small" type="button" onclick="saveClient()">Salvar
               <i class="material-icons right">send</i>
             </button>
+            <button id="toggleVisibilityBtn" class="btn waves-effect blue btn-small" type="button" onclick="toggleClientListVisibility()">
+              <i id="visibilityIcon" class="material-icons">visibility_off</i>
+              <span id="visibilityText">Exibir</span>
+            </button>
           </div>
         </div>
       </form>
 
-      <table class="striped">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>CEP</th>
-            <th>Endereço</th>
-            <th>Editar/Deletar/Histórico</th>
-          </tr>
-        </thead>
-        <tbody id="clients-list">
-          <!-- Clientes serão carregados aqui via JavaScript -->
-          <td>
-            <button onclick="editClient('${client.id}')" class="btn-small waves-effect waves-light green">
-              <i class="material-icons">edit</i>
-            </button>
-            <button onclick="deleteClient('${client.id}')" class="btn-small waves-effect waves-light red">
-              <i class="material-icons">delete</i>
-            </button>
-            <button onclick="showClientHistory('${client.id}')" class="btn-small waves-effect waves-light blue">
-              <i class="material-icons">history</i>
-            </button>
-          </td>
-        </tbody>
-      </table>
+      <div id="clientsTableSection" style="display: none;">
+        <table class="striped">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Telefone</th>
+              <th>CEP</th>
+              <th>Endereço</th>
+              <th>Editar/Deletar/Histórico</th>
+            </tr>
+          </thead>
+          <tbody id="clients-list">
+            <!-- Clientes serão carregados aqui via JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -184,8 +187,36 @@
     </div>
   </div>
 
+  <!-- Footer atualizado -->
+  <footer class="page-footer grey lighten-4" style="margin-top: 20px;">
+    <div class="container">
+        <div class="row" style="margin-bottom: 0;">
+            <div class="col s12" style="line-height: 0.8;">
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">info</i>
+                    Sistema para gerenciamento de produtos, clientes e pedidos de pizzaria.
+                </p>
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">code</i>
+                    Análise e desenvolvimento de sistemas - Faculdade Nova Roma - Full Stack | Projeto Integrador
+                </p>
+                <p class="black-text" style="font-size: 0.75rem; margin: 3px 0;">
+                    <i class="tiny material-icons" style="vertical-align: middle; margin-right: 5px; font-size: 1rem;">group</i>
+                    Prof. Henning Summer | Alunos: Eduardo Cadiz | Leonardo Andrade | Kaio Guilherme - [2025]
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copyright" style="padding: 5px 0;">
+        <div class="container black-text" style="font-size: 0.7rem;">
+            © 2025 Pizza Show
+        </div>
+    </div>
+  </footer>
+
   <!-- Scripts -->
   <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="/js/materialize.js"></script>
   <script src="/js/init.js"></script>

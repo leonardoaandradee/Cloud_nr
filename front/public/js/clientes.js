@@ -297,6 +297,24 @@ async function showClientHistory(clientId) {
     }
 }
 
+// Função para alternar a visibilidade da lista de clientes
+function toggleClientListVisibility() {
+    const clientsTableSection = document.getElementById('clientsTableSection');
+    const visibilityIcon = document.getElementById('visibilityIcon');
+    const visibilityText = document.getElementById('visibilityText');
+    
+    // Alternar visibilidade
+    if (clientsTableSection.style.display === 'none') {
+        clientsTableSection.style.display = 'block';
+        visibilityIcon.textContent = 'visibility';
+        visibilityText.textContent = 'Ocultar';
+    } else {
+        clientsTableSection.style.display = 'none';
+        visibilityIcon.textContent = 'visibility_off';
+        visibilityText.textContent = 'Exibir';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadClients();
     const modalElem = document.getElementById('modalCepNaoEncontrado');
