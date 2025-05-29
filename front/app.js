@@ -4,11 +4,7 @@ const path = require('path');
 const logger = require('morgan');
 const cors = require('cors');
 const indexRouter = require('./routes/index');
-
-
-
-
-
+const URL_FRONT = 'https://glowing-journey-jjqjvp5qwqvxfqjxj-3000.app.github.dev';
 
 const app = express();
 
@@ -24,7 +20,7 @@ app.use('/js', express.static(path.join(__dirname, 'public/js')));
 
 // Configuração do CORS
 app.use(cors({
-  origin: 'https://humble-space-halibut-5gqpw5x4p5vwc7q76-4000.app.github.dev',
+  origin: URL_FRONT,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

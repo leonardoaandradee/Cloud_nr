@@ -7,13 +7,14 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const URL_FRONT ='https://glowing-journey-jjqjvp5qwqvxfqjxj-3000.app.github.dev'   
 
 // Inicialização do app
 const app = express();
 
 // Configuração do CORS
 app.use(cors({
-  origin: 'https://humble-space-halibut-5gqpw5x4p5vwc7q76-3000.app.github.dev', // domínio do seu frontend
+  origin: URL_FRONT,
   credentials: true,
 }));
 
@@ -52,7 +53,7 @@ function checkAuth(req, res, next) {
   }
 
   // Redirecionar para a página de login no FRONT (apenas para acesso direto pelo navegador)
-  return res.redirect('https://humble-space-halibut-5gqpw5x4p5vwc7q76-3000.app.github.dev/login');
+  return res.redirect(`${CONFIG.URL_FRONT}/login`);
   
 }
 

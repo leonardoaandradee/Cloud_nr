@@ -1,3 +1,5 @@
+const { config } = require("dotenv");
+
 document.addEventListener('DOMContentLoaded', function() {
     checarLogin();
 
@@ -9,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = form.password.value;
 
             try {
-                const response = await fetch('https://humble-space-halibut-5gqpw5x4p5vwc7q76-4000.app.github.dev/login', {
+                const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -38,7 +40,7 @@ async function checarLogin() {
 
     try {
         // Exemplo: checar status em uma rota protegida
-        const response = await fetch('https://humble-space-halibut-5gqpw5x4p5vwc7q76-4000.app.github.dev/clientes', {
+        const response = await fetch(`${CONFIG.API_URL}/clientes`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`

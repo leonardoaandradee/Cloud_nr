@@ -3,9 +3,12 @@ A aplicação simula o funcionamento básico de um sistema para uma pizzaria, pe
 
 ## 🚀 Visão Geral:
 O objetivo principal é criar uma estrutura funcional para uma pizzaria digital, onde:
-- Clientes podem ser cadastrados, editados e removidos.
-- Pizzas (produtos) podem ser adicionadas, editada ou removidas do sistema.
-- Pedidos podem ser feitos relacionando clientes aos produtos escolhidos.
+1 - Clientes podem ser cadastrados, editados e removidos.
+-- Poderá ser visto o histórico dos últims 5 pedidos de cada cliente.
+2 - Pizzas (produtos) podem ser adicionadas, editada ou removidas do sistema.
+3- Pedidos podem ser feitos relacionando clientes aos produtos escolhidos.
+-- Poderá ser visto o detalhes de cada pedido clicando no numero do pedido.
+-- Pedidos poderão ser alterados;
 
 ## Para rodar projeto:
 #### BACKEND: /back/npm run dev
@@ -37,6 +40,8 @@ O objetivo principal é criar uma estrutura funcional para uma pizzaria digital,
 - SQLITE3
 - API Via CEP
 - API Open Street Map
+- iMask
+- SweetAlert
 
 ## 🔗 Estrutura de Comunicação:
 A aplicação é dividida entre cliente e servidor:
