@@ -13,12 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Carregar clientes para o cache
     carregarClientes();
-
-    // Inicializar máscara do telefone
-    const phoneInput = document.getElementById('phoneSearch');
-    IMask(phoneInput, {
-        mask: '+55 (00) 0 0000-0000'
-    });
 });
 
 // Cache de dados global
@@ -174,11 +168,6 @@ async function carregarPedidos() {
         }
 
         const tbody = document.getElementById('pedidos-list');
-        if (!tbody) {
-            console.error('Elemento pedidos-list não encontrado');
-            return;
-        }
-
         tbody.innerHTML = '';
 
         if (!data.dados || data.dados.length === 0) {
@@ -191,11 +180,18 @@ async function carregarPedidos() {
         );
 
         pedidosOrdenados.forEach(pedido => {
+            // Formatar a descrição dos itens
+            const descricaoItens = Array.isArray(pedido.itens) 
+                ? pedido.itens.map(item => 
+                    `${item.sabor} (${item.quantidade}x - ${item.tamanho})`
+                  ).join(', ')
+                : 'Sem itens';
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="pedido-id">
-                    
-                    <a hr<i class="material-icons" style="vertical-align: middle; color: #900404; margin-right: 5px;">assignment</i>ef="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
+                    <i class="material-icons" style="vertical-align: middle; color: #900404; margin-right: 5px;">assignment</i>
+                    <a href="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
                        class="blue-text text-darken-2">
                         <b>Nº ${pedido.id}</b>
                     </a>
@@ -207,7 +203,7 @@ async function carregarPedidos() {
                 </td>
                 <td class="pedido-descricao">
                     <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        ${pedido.itens || 'Sem itens'}
+                        ${descricaoItens}
                     </div>
                 </td>
                 <td class="pedido-status">
@@ -230,6 +226,7 @@ async function carregarPedidos() {
             tbody.appendChild(row);
         });
 
+        // Reinicializar selects do Materialize
         M.FormSelect.init(document.querySelectorAll('.status-select'));
     } catch (error) {
         console.error('Erro ao carregar pedidos:', error);
@@ -399,8 +396,7 @@ async function deletarPedido(pedidoId) {
  * Funções de manipulação de pedidos
  */
 async function buscarCliente() {
-    const telefoneComMascara = document.getElementById('phoneSearch').value.trim();
-    const telefone = telefoneComMascara.replace(/\D/g, '').slice(-11);
+    const telefone = document.getElementById('phoneSearch').value.trim();
     console.log('Buscando cliente com telefone:', telefone);
     
     if (!telefone) {
@@ -414,7 +410,7 @@ async function buscarCliente() {
 
     try {
         const clienteEncontrado = Object.values(clientesData).find(
-            cliente => cliente.telefone.replace(/\D/g, '').slice(-11) === telefone
+            cliente => cliente.telefone === telefone
         );
 
         if (!clienteEncontrado) {
@@ -1210,21 +1206,12 @@ function filtrarClientes() {
 }
 
 function selecionarCliente(telefone) {
-    // Formatar o telefone antes de inserir no campo
     const phoneInput = document.getElementById('phoneSearch');
-    const phoneRaw = telefone.replace(/\D/g, '');
-    const phoneMasked = `+55 (${phoneRaw.slice(0,2)}) ${phoneRaw.slice(2,3)} ${phoneRaw.slice(3,7)}-${phoneRaw.slice(7)}`;
-    
-    // Limpar e definir o valor com a máscara
-    phoneInput.value = '';
-    phoneInput.value = phoneMasked;
+    phoneInput.value = telefone;
     
     const modal = M.Modal.getInstance(document.getElementById('modalListaClientes'));
     modal.close();
     
-    // Ativar o label
     M.updateTextFields();
-    
-    // Buscar cliente
     buscarCliente();
 }
