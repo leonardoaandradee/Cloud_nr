@@ -181,32 +181,34 @@ async function carregarPedidos() {
 
         pedidosOrdenados.forEach(pedido => {
             // Formatar a descrição dos itens
-            const descricaoItens = Array.isArray(pedido.itens) 
+            const descricaoItens = Array.isArray(pedido.itens) && pedido.itens.length > 0
                 ? pedido.itens.map(item => 
                     `${item.sabor} (${item.quantidade}x - ${item.tamanho})`
                   ).join(', ')
                 : 'Sem itens';
 
+            const dataHora = formatarDataPedido(pedido.data_pedido);
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="pedido-id">
+                <td>
                     <i class="material-icons" style="vertical-align: middle; color: #900404; margin-right: 5px;">assignment</i>
                     <a href="#" onclick="mostrarDetalhesPedido(${pedido.id}); return false;" 
                        class="blue-text text-darken-2">
                         <b>Nº ${pedido.id}</b>
                     </a>
                 </td>
-                <td class="pedido-data">${formatarDataPedido(pedido.data_pedido)}</td>
-                <td class="pedido-cliente">
+                <td>${dataHora}</td>
+                <td>
                     <b>${pedido.cliente_nome || 'Não informado'}</b><br>
                     <small>Tel: ${pedido.cliente_telefone || 'N/A'}</small>
                 </td>
-                <td class="pedido-descricao">
+                <td>
                     <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         ${descricaoItens}
                     </div>
                 </td>
-                <td class="pedido-status">
+                <td>
                     <select class="browser-default status-select" 
                             onchange="atualizarStatus(${pedido.id}, this.value)">
                         ${gerarOpcoesStatus(pedido.status || 'Pendente')}
@@ -396,9 +398,12 @@ async function deletarPedido(pedidoId) {
  * Funções de manipulação de pedidos
  */
 async function buscarCliente() {
-    const telefone = document.getElementById('phoneSearch').value.trim();
-    console.log('Buscando cliente com telefone:', telefone);
-    
+    const telefoneInput = document.getElementById('phoneSearch').value.trim();
+    // Normaliza para comparar apenas os números finais (11 dígitos)
+    const telefone = telefoneInput.replace(/\D/g, '').slice(-11);
+
+    console.log('Buscando cliente com telefone:', telefoneInput);
+
     if (!telefone) {
         Swal.fire({
             title: 'Erro!',
@@ -409,8 +414,9 @@ async function buscarCliente() {
     }
 
     try {
+        // Busca por telefone normalizado
         const clienteEncontrado = Object.values(clientesData).find(
-            cliente => cliente.telefone === telefone
+            cliente => (cliente.telefone || '').replace(/\D/g, '').slice(-11) === telefone
         );
 
         if (!clienteEncontrado) {
@@ -1208,10 +1214,13 @@ function filtrarClientes() {
 function selecionarCliente(telefone) {
     const phoneInput = document.getElementById('phoneSearch');
     phoneInput.value = telefone;
-    
+    // Atualize o campo para garantir que a máscara seja aplicada corretamente
+    if (window.IMask && phoneInput.inputMask) {
+        // Força atualização da máscara se necessário
+        phoneInput.inputMask.updateValue();
+    }
     const modal = M.Modal.getInstance(document.getElementById('modalListaClientes'));
     modal.close();
-    
     M.updateTextFields();
     buscarCliente();
 }

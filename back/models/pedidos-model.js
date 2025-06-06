@@ -4,10 +4,17 @@ const pedidosDB = require('../database/database-config');
 function getPedidos(res) {
     pedidosDB.all(`
         SELECT 
-            p.*,
+            p.id,
+            p.data_pedido,
+            p.preco_total,
+            p.endereco_entrega,
+            p.status,
             c.nome as cliente_nome,
             c.telefone as cliente_telefone,
-            GROUP_CONCAT(pr.sabor || ' (' || ip.quantidade || 'x)') as itens
+            GROUP_CONCAT(
+                pr.id || '|' || pr.sabor || '|' || pr.tamanho || '|' || ip.quantidade || '|' || ip.preco_unitario || '|' || ip.subtotal,
+                ';'
+            ) as itens_concat
         FROM pedidos p
         LEFT JOIN clientes c ON p.clientes_id = c.id
         LEFT JOIN itens_pedido ip ON p.id = ip.pedidos_id
@@ -23,9 +30,36 @@ function getPedidos(res) {
                 detalhes: err.message 
             });
         }
+        // Transformar itens_concat em array de objetos
+        const pedidos = rows.map(row => {
+            let itens = [];
+            if (row.itens_concat) {
+                itens = row.itens_concat.split(';').map(str => {
+                    const [produtos_id, sabor, tamanho, quantidade, preco_unitario, subtotal] = str.split('|');
+                    return {
+                        produtos_id: Number(produtos_id),
+                        sabor,
+                        tamanho,
+                        quantidade: Number(quantidade),
+                        preco_unitario: Number(preco_unitario),
+                        subtotal: Number(subtotal)
+                    };
+                });
+            }
+            return {
+                id: row.id,
+                data_pedido: row.data_pedido,
+                preco_total: row.preco_total,
+                endereco_entrega: row.endereco_entrega,
+                status: row.status,
+                cliente_nome: row.cliente_nome,
+                cliente_telefone: row.cliente_telefone,
+                itens
+            };
+        });
         res.status(200).json({
             sucesso: true,
-            dados: rows
+            dados: pedidos
         });
     });
 }

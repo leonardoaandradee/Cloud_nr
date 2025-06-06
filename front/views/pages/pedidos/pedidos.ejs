@@ -438,5 +438,30 @@
     <script src="/js/materialize.js"></script>
     <script src="/js/init.js"></script>
     <script src="/js/pedidos.js"></script>
+    <!-- Adicione a biblioteca de máscara de telefone -->
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        // Aplica máscara ao campo de telefone do cliente
+        document.addEventListener('DOMContentLoaded', function() {
+            var phoneInput = document.getElementById('phoneSearch');
+            if (phoneInput) {
+                // Máscara: +55 (00) 00000-0000 ou +55 (00) 0000-0000
+                var maskOptions = {
+                    mask: [
+                        '+55 (00) 00000-0000',
+                        '+55 (00) 0000-0000'
+                    ],
+                    lazy: false,
+                    overwrite: true
+                };
+                var phoneMask = IMask(phoneInput, maskOptions);
+
+                // Se o telefone for preenchido via modal, não aplicar a máscara novamente
+                phoneInput.addEventListener('input', function() {
+                    // Nada extra aqui, IMask já cuida da digitação
+                });
+            }
+        });
+    </script>
 </body>
 </html>
